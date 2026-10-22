@@ -33,7 +33,7 @@ function stack(children: readonly Widget[], spacing = 8): Widget {
 function stylePanel(widget: Widget): Widget {
   setPadding(widget, 10);
   setCornerRadius(widget, 10);
-  widgetSetBackgroundColor(widget, 0.12, 0.12, 0.14, 0.92);
+  widgetSetBackgroundColor(widget, 0.96, 0.96, 0.97, 1);
   return widget;
 }
 
