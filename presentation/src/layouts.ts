@@ -1,10 +1,31 @@
 import {
   container,
+  group,
   type PageLayout,
   panel,
   slot,
   validateLayout,
 } from "./schema.js";
+
+export const APP_ROUTER_LAYOUT: PageLayout = {
+  id: "app-router",
+  root: group("app.router", [
+    slot("app.header"),
+    slot("app.main"),
+    slot("app.footer"),
+    slot("app.tracking", { optional: true }),
+  ]),
+};
+
+export const APP_LAYOUT: PageLayout = {
+  id: "app",
+  root: group("app.root", [
+    slot("app.settings", { optional: true }),
+    slot("app.file-picker", { optional: true }),
+    slot("app.router"),
+    slot("app.tooltip", { optional: true }),
+  ]),
+};
 
 export const CHIP_LAYOUT: PageLayout = {
   id: "chip",
