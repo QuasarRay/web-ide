@@ -10,7 +10,18 @@ export const CHIP_LAYOUT: PageLayout = {
   id: "chip",
   root: container(
     "chip.root",
-    [slot("chip.hdl"), slot("chip.pins"), slot("chip.test")],
+    [
+      panel("chip.hdl", [slot("chip.hdl.body")], {
+        tokens: ["chip-hdl"],
+        editor: true,
+        header: "chip.hdl.header",
+      }),
+      panel("chip.pins", [slot("chip.pins.body")], {
+        tokens: ["chip-parts"],
+        header: "chip.pins.header",
+      }),
+      slot("chip.test"),
+    ],
     ["page", "chip-page", "grid"],
   ),
 };
@@ -106,7 +117,19 @@ export const BITMAP_LAYOUT: PageLayout = {
   id: "bitmap",
   root: container(
     "bitmap.root",
-    [slot("bitmap.body")],
+    [
+      panel("bitmap.canvas", [slot("bitmap.canvas.body")], {
+        tokens: ["bitmap-canvas"],
+        header: "bitmap.canvas.header",
+      }),
+      panel("bitmap.code", [slot("bitmap.code.body")], {
+        tokens: ["bitmap-code"],
+        header: "bitmap.code.header",
+      }),
+      panel("bitmap.controls", [slot("bitmap.controls.body")], {
+        tokens: ["bitmap-controls"],
+      }),
+    ],
     ["page", "bitmap-page", "grid"],
   ),
 };
