@@ -46,7 +46,7 @@ npm run check
 npm run build:android
 ```
 
-The CI workflow runs the existing repository regression suite first, then native differential tests, Perry compatibility checking, and the Android build.
+The CI workflow runs the existing repository regression suite first, then native differential tests, Perry compatibility checking, and the Android build. On GitHub-hosted Linux runners it uses the preinstalled Android SDK directly and installs the pinned NDK with `sdkmanager`.
 
 ## Optimization policy
 
