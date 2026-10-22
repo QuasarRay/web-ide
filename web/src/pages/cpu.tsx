@@ -272,6 +272,7 @@ export const CPU = () => {
         "cpu.test": test,
       }}
     />
-  );};
+  );
+};
 
 export default CPU;
