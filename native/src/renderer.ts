@@ -99,7 +99,9 @@ export function renderNativeTree(
 export function renderNativeLayout(
   schema: PageLayout,
   slots: Readonly<Record<string, Widget | undefined>>,
-  dynamicTokens: Readonly<Record<string, readonly StyleToken[] | undefined>> = {},
+  dynamicTokens: Readonly<
+    Record<string, readonly StyleToken[] | undefined>
+  > = {},
 ): Widget {
   const scroll = ScrollView();
   scrollviewSetChild(scroll, renderNativeTree(schema, slots, dynamicTokens));
