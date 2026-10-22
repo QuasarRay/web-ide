@@ -6,8 +6,8 @@ import {
   state,
   Text,
   textSetFontSize,
-  type Widget,
   VStack,
+  type Widget,
 } from "perry/ui";
 
 import {
