@@ -38,7 +38,7 @@ function parseWord(source: string): number {
 function homePage() {
   return VStack(12, [
     Text("nand2tetris — Perry Native"),
-    Text("Strict AOT Android build: no WebView, Node.js, V8, or JIT."),
+    Text("Strict AOT Android build: no embedded browser, Node.js, V8, or JIT."),
     Button("Hardware / ALU", () => route.set("hardware")),
     Button("CPU single-step", () => route.set("cpu")),
     Button("Assembler", () => route.set("assembler")),
