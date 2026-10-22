@@ -167,7 +167,7 @@ jobs:
             --target android \
             --fast-math \
             -o dist/Nand2TetrisNative
-          find native/dist -maxdepth 5 -type f -print
+          find dist -maxdepth 5 -type f -print
 
       - name: Verify APK exists
         id: apk
