@@ -273,7 +273,8 @@ export const Compiler = () => {
         "compiler.code.body": codeBody,
       }}
     />
-  );};
+  );
+};
 
 export default Compiler;
 
