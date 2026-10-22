@@ -1,0 +1,17 @@
+[project]
+name = "nand2tetris-native"
+version = "0.1.0"
+build_number = 1
+bundle_id = "org.nand2tetris.native"
+description = "Native AOT nand2tetris IDE powered by Perry"
+entry = "src/main.ts"
+
+[build]
+out_dir = "dist"
+march = "generic"
+
+[android]
+package_name = "org.nand2tetris.native"
+min_sdk = "24"
+target_sdk = "35"
+entry = "src/main.ts"
