@@ -47,12 +47,16 @@ const Header = () => {
 
   const runAction = (action: ShellActionSchema) => {
     baseContext.setStatus("");
+    setTool(
+      action.kind === "route" && action.route
+        ? ROUTES[action.route].tool
+        : undefined,
+    );
 
     switch (action.kind) {
       case "route": {
         if (!action.route) return;
         const route = ROUTES[action.route];
-        setTool(route.tool);
         localStorage.setItem(LAST_ROUTE_KEY, route.href);
         navigate(route.href);
         return;
