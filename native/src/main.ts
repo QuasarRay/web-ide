@@ -3,12 +3,12 @@ import {
   Button,
   HStack,
   NavStack,
+  setText,
+  state,
   Text,
   TextArea,
   TextField,
   VStack,
-  setText,
-  state,
 } from "perry/ui";
 
 import { alu } from "../../simulator/src/cpu/alu.ts";
