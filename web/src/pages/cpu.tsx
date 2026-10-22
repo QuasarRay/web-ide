@@ -7,13 +7,15 @@ import { Screen, ScreenScales } from "@nand2tetris/components/chips/screen.js";
 import { useContext, useEffect, useRef, useState } from "react";
 
 import { Trans } from "@lingui/react/macro";
+import { CPU_LAYOUT } from "../../../presentation/build/layouts.js";
 import { useStateInitializer } from "@nand2tetris/components/react";
 import { Runbar } from "@nand2tetris/components/runbar";
 import { BaseContext } from "@nand2tetris/components/stores/base.context";
 import { isPath } from "../shell/file_select";
 import { AppContext } from "../App.context";
 import { PageContext } from "../Page.context";
-import { Accordian, Panel } from "../shell/panel";
+import { SchemaLayout } from "../presentation/SchemaLayout";
+import { Accordian } from "../shell/panel";
 import { TestPanel } from "../shell/test_panel";
 import "./cpu.scss";
 
@@ -133,126 +135,143 @@ export const CPU = () => {
     }
   };
 
-  return (
-    <div
-      className={`Page CpuPage grid ${state.config.screenScale == 2 ? "large-screen" : "normal"}`}
-    >
-      <MemoryComponent
-        name="ROM"
-        memory={state.sim.ROM}
-        highlight={state.sim.PC}
-        format={state.config.romFormat}
-        fileSelect={loadFile}
-        onSetFormat={(format: Format) => {
-          dispatch.current({
-            action: "updateConfig",
-            payload: { romFormat: format },
-          });
-        }}
-        onClear={() => actions.clear()}
-        loadTooltip={{
-          value: "Load an .asm or .hack file",
-          placement: "right",
-        }}
-      />
-      <MemoryComponent
-        name="RAM"
-        memory={state.sim.RAM}
-        format={state.config.ramFormat}
-        excludedFormats={["asm"]}
-        onChange={onMemoryChange}
-        onSetFormat={(format: Format) => {
-          dispatch.current({
-            action: "updateConfig",
-            payload: { ramFormat: format },
-          });
-        }}
-      />
-      <Panel
-        className="IO"
-        header={
-          <>
-            <div className="flex-1">
-              {runnersAssigned && cpuRunner.current && (
-                <Runbar
-                  runner={cpuRunner.current}
-                  speed={state.config.speed}
-                  onSpeedChange={(speed) => {
-                    dispatch.current({
-                      action: "updateConfig",
-                      payload: { speed },
-                    });
-                  }}
-                />
-              )}
-            </div>
-          </>
-        }
-      >
-        <Screen
-          key={screenRenderKey}
-          memory={state.sim.Screen}
-          showScaleControls={true}
-          scale={state.config.screenScale}
-          onScale={onScale}
-        ></Screen>
-        <Keyboard update={onKeyChange} keyboard={state.sim.Keyboard} />
-        <Accordian summary={<Trans>Registers</Trans>} open={true}>
-          <main>
-            <div>
-              <dl>
-                <dt>PC</dt>
-                <dd data-testid="register-PC">{state.sim.PC}</dd>
-                <dt>A</dt>
-                <dd data-testid="register-A">{state.sim.A}</dd>
-                <dt>D</dt>
-                <dd data-testid="register-D">{state.sim.D}</dd>
-              </dl>
-            </div>
-          </main>
-        </Accordian>
-      </Panel>
-      {runnersAssigned && (
-        <TestPanel
-          runner={testRunner}
-          tst={[tst, setTst, state.test.highlight]}
-          out={[out, setOut]}
-          cmp={[cmp, setCmp]}
-          setPath={setTstPath}
-          tstName={state.test.name}
-          disabled={!state.test.valid}
-          showName={state.tests.length < 2}
-          speed={state.config.testSpeed}
+  const rom = (
+    <MemoryComponent
+      name="ROM"
+      memory={state.sim.ROM}
+      highlight={state.sim.PC}
+      format={state.config.romFormat}
+      fileSelect={loadFile}
+      onSetFormat={(format: Format) => {
+        dispatch.current({
+          action: "updateConfig",
+          payload: { romFormat: format },
+        });
+      }}
+      onClear={() => actions.clear()}
+      loadTooltip={{
+        value: "Load an .asm or .hack file",
+        placement: "right",
+      }}
+    />
+  );
+
+  const ram = (
+    <MemoryComponent
+      name="RAM"
+      memory={state.sim.RAM}
+      format={state.config.ramFormat}
+      excludedFormats={["asm"]}
+      onChange={onMemoryChange}
+      onSetFormat={(format: Format) => {
+        dispatch.current({
+          action: "updateConfig",
+          payload: { ramFormat: format },
+        });
+      }}
+    />
+  );
+
+  const ioHeader = (
+    <div className="flex-1">
+      {runnersAssigned && cpuRunner.current && (
+        <Runbar
+          runner={cpuRunner.current}
+          speed={state.config.speed}
           onSpeedChange={(speed) => {
             dispatch.current({
               action: "updateConfig",
-              payload: { testSpeed: speed },
+              payload: { speed },
             });
-            actions.setAnimate(speed <= 2);
           }}
-          prefix={
-            state.tests.length > 1 ? (
-              <select
-                value={state.test.name}
-                onChange={({ target: { value } }) => {
-                  actions.loadTest(value);
-                }}
-                data-testid="test-picker"
-              >
-                {state.tests.map((test) => (
-                  <option key={test} value={test}>
-                    {test}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <></>
-            )
-          }
         />
       )}
     </div>
   );
-};
+
+  const ioBody = (
+    <>
+      <Screen
+        key={screenRenderKey}
+        memory={state.sim.Screen}
+        showScaleControls={true}
+        scale={state.config.screenScale}
+        onScale={onScale}
+      />
+      <Keyboard update={onKeyChange} keyboard={state.sim.Keyboard} />
+      <Accordian summary={<Trans>Registers</Trans>} open={true}>
+        <main>
+          <div>
+            <dl>
+              <dt>PC</dt>
+              <dd data-testid="register-PC">{state.sim.PC}</dd>
+              <dt>A</dt>
+              <dd data-testid="register-A">{state.sim.A}</dd>
+              <dt>D</dt>
+              <dd data-testid="register-D">{state.sim.D}</dd>
+            </dl>
+          </div>
+        </main>
+      </Accordian>
+    </>
+  );
+
+  const test = runnersAssigned ? (
+    <TestPanel
+      runner={testRunner}
+      tst={[tst, setTst, state.test.highlight]}
+      out={[out, setOut]}
+      cmp={[cmp, setCmp]}
+      setPath={setTstPath}
+      tstName={state.test.name}
+      disabled={!state.test.valid}
+      showName={state.tests.length < 2}
+      speed={state.config.testSpeed}
+      onSpeedChange={(speed) => {
+        dispatch.current({
+          action: "updateConfig",
+          payload: { testSpeed: speed },
+        });
+        actions.setAnimate(speed <= 2);
+      }}
+      prefix={
+        state.tests.length > 1 ? (
+          <select
+            value={state.test.name}
+            onChange={({ target: { value } }) => {
+              actions.loadTest(value);
+            }}
+            data-testid="test-picker"
+          >
+            {state.tests.map((testName) => (
+              <option key={testName} value={testName}>
+                {testName}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <></>
+        )
+      }
+    />
+  ) : undefined;
+
+  return (
+    <SchemaLayout
+      schema={CPU_LAYOUT}
+      dynamicTokens={{
+        "cpu.root": [
+          state.config.screenScale == 2 ? "screen-large" : "screen-normal",
+        ],
+      }}
+      slots={{
+        "cpu.rom": rom,
+        "cpu.ram": ram,
+        "cpu.io.header": ioHeader,
+        "cpu.io.body": ioBody,
+        "cpu.test": test,
+      }}
+    />
+  );};
 
 export default CPU;
