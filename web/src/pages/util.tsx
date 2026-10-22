@@ -1,3 +1,4 @@
+import { UTIL_LAYOUT } from "../../../presentation/build/layouts.js";
 import { asm, op } from "@nand2tetris/simulator/util/asm.js";
 import {
   bin,
@@ -9,6 +10,7 @@ import {
   unsigned,
 } from "@nand2tetris/simulator/util/twos.js";
 import { ChangeEvent, Dispatch, SetStateAction, useState } from "react";
+import { SchemaLayout } from "../presentation/SchemaLayout";
 
 import "./util.scss";
 
@@ -91,7 +93,7 @@ export const Util = () => {
   const [value, setValue] = useState<number | undefined>();
   const [error, setError] = useState<string | undefined>();
 
-  return (
+  const body = (
     <article>
       <header>
         <h2>Convert Hack Number Types</h2>
@@ -173,6 +175,7 @@ export const Util = () => {
       </main>
     </article>
   );
-};
+
+  return <SchemaLayout schema={UTIL_LAYOUT} slots={{ "util.body": body }} />;};
 
 export default Util;
