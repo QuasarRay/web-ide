@@ -378,7 +378,8 @@ const VM = () => {
         "vm.test": test,
       }}
     />
-  );};
+  );
+};
 
 export default VM;
 
