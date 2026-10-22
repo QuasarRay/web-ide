@@ -136,7 +136,7 @@ export const BITMAP_LAYOUT: PageLayout = {
 
 export const UTIL_LAYOUT: PageLayout = {
   id: "util",
-  root: container("util.root", [slot("util.body")], ["util-page"]),
+  root: slot("util.body"),
 };
 
 export const TOOL_LAYOUTS = {
