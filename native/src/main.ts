@@ -69,7 +69,9 @@ const navigation = NavStack(route, [
 const routerShell = renderNativeTree(APP_ROUTER_LAYOUT, {
   "app.header": header(),
   "app.content": navigation,
-  "app.footer": Text("Native Android Views • Perry AOT • shared presentation schema"),
+  "app.footer": Text(
+    "Native Android Views • Perry AOT • shared presentation schema",
+  ),
 });
 
 const appShell = renderNativeTree(APP_LAYOUT, {
