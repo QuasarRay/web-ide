@@ -31,6 +31,7 @@ const WEB_CLASSES: Readonly<Record<string, string>> = {
   "screen-large": "large-screen",
   "screen-normal": "normal",
   "screen-hidden": "no-screen",
+  "hide-symbols": "hide-sym",
   "stack-memory": "Stack",
 };
 
