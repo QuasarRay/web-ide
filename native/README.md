@@ -26,7 +26,7 @@ JIT execution.
 
 ## Optimization
 
-The CI build pins Perry 0.5.1663 and enables:
+The CI build pins Perry 0.5.1520 and enables:
 
 - LLVM native AOT code generation;
 - `--fast-math` / `PERRY_FAST_MATH=1`;
@@ -58,12 +58,12 @@ but execution remains explicitly staged rather than silently using WebView/V8.
 
 ## Local build
 
-Requirements: Node 22+, Perry 0.5.1663, Android SDK, and Android NDK.
+Requirements: Node 22+, Perry 0.5.1520, Android SDK, and Android NDK.
 
 ```sh
 npm ci
 npx tsc --build presentation
-npm install --global @perryts/perry@0.5.1663
+npm install --global @perryts/perry@0.5.1520
 
 export PERRY_FAST_MATH=1
 export PERRY_LL_SIZE_OPT=0
