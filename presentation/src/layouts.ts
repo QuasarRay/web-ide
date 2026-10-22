@@ -139,6 +139,13 @@ export const UTIL_LAYOUT: PageLayout = {
   root: slot("util.body"),
 };
 
+export const ABOUT_LAYOUT: PageLayout = {
+  id: "about",
+  root: container("about.root", [
+    container("about.content", [slot("about.body")], ["content-container"]),
+  ]),
+};
+
 export const TOOL_LAYOUTS = {
   chip: CHIP_LAYOUT,
   cpu: CPU_LAYOUT,
@@ -147,6 +154,7 @@ export const TOOL_LAYOUTS = {
   compiler: COMPILER_LAYOUT,
   bitmap: BITMAP_LAYOUT,
   util: UTIL_LAYOUT,
+  about: ABOUT_LAYOUT,
 } as const;
 
 for (const layout of Object.values(TOOL_LAYOUTS)) {
