@@ -75,16 +75,20 @@ function makeRenderer(
       tokens: readonly StyleToken[],
     ) {
       const props = containerProps[node.id];
-      return (
-        <div
-          {...props}
-          className={[className(tokens), props?.className ?? ""]
-            .filter((value) => value.length > 0)
-            .join(" ")}
-        >
-          {children.map((child, index) => (
-            <Fragment key={node.children[index]?.id ?? index}>{child}</Fragment>
-          ))}
+      const classes = [className(tokens), props?.className ?? ""]
+        .filter((value) => value.length > 0)
+        .join(" ");
+      const content = children.map((child, index) => (
+        <Fragment key={node.children[index]?.id ?? index}>{child}</Fragment>
+      ));
+
+      return node.landmark === "main" ? (
+        <main {...props} className={classes}>
+          {content}
+        </main>
+      ) : (
+        <div {...props} className={classes}>
+          {content}
         </div>
       );
     },
