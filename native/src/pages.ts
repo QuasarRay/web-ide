@@ -66,7 +66,10 @@ function hardwareEvaluator(): any {
     }),
     Button("Evaluate NAND16", () => {
       const out = nand16(parseWord(nandA), parseWord(nandB));
-      setText("nativeNandResult", "NAND = " + dec(out) + "  " + hex(out) + "  " + bin(out));
+      setText(
+        "nativeNandResult",
+        "NAND = " + dec(out) + "  " + hex(out) + "  " + bin(out),
+      );
     }),
     Text("NAND = 65535  0xFFFF  1111111111111111", "nativeNandResult"),
     Text("Hack ALU"),
@@ -87,7 +90,12 @@ function hardwareEvaluator(): any {
       );
       setText(
         "nativeAluResult",
-        "out=" + dec(result[0]) + " (" + hex(result[0]) + ") flags=" + result[1],
+        "out=" +
+          dec(result[0]) +
+          " (" +
+          hex(result[0]) +
+          ") flags=" +
+          result[1],
       );
     }),
     Text("out=0 (0x0000) flags=0", "nativeAluResult"),
@@ -170,10 +178,7 @@ function cpuControls(): any {
           result.writeM,
       );
     }),
-    Text(
-      "A=0 D=0 PC=0 outM=0 addressM=0 writeM=false",
-      "nativeCpuResult",
-    ),
+    Text("A=0 D=0 PC=0 outM=0 addressM=0 writeM=false", "nativeCpuResult"),
   ]);
 }
 
@@ -265,10 +270,7 @@ export function compilerPage(): any {
         jackSource = value;
       }),
       Button("Inspect source", () => {
-        setText(
-          "nativeJackStatus",
-          "Characters entered: " + jackSource.length,
-        );
+        setText("nativeJackStatus", "Characters entered: " + jackSource.length);
       }),
       Text("Characters entered: 0", "nativeJackStatus"),
       Text(
@@ -310,10 +312,7 @@ export function utilPage(): any {
           "dec=" + dec(value) + "  hex=" + hex(value) + "  bin=" + bin(value),
         );
       }),
-      Text(
-        "dec=0  hex=0x0000  bin=0000000000000000",
-        "nativeUtilResult",
-      ),
+      Text("dec=0  hex=0x0000  bin=0000000000000000", "nativeUtilResult"),
     ]),
   });
 }
