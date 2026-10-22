@@ -31,7 +31,7 @@ export type LayoutNode = ContainerNode | PanelNode | SlotNode;
 
 export interface PageLayout {
   id: string;
-  root: ContainerNode;
+  root: LayoutNode;
 }
 
 export interface RenderContext<Slot> {
