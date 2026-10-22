@@ -15,6 +15,7 @@ export interface GroupNode extends LayoutBase {
 export interface ContainerNode extends LayoutBase {
   kind: "container";
   children: readonly LayoutNode[];
+  landmark?: "main";
 }
 
 export interface PanelNode extends LayoutBase {
@@ -85,11 +86,13 @@ export const container = (
   id: NodeId,
   children: readonly LayoutNode[],
   tokens: readonly StyleToken[] = [],
+  options: { landmark?: "main" } = {},
 ): ContainerNode => ({
   kind: "container",
   id,
   children,
   tokens,
+  landmark: options.landmark,
 });
 
 export const panel = (
