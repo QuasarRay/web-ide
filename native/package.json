@@ -1,0 +1,15 @@
+{
+  "name": "@nand2tetris/perry-native",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "perry check src/main.ts",
+    "build:android": "mkdir -p dist && perry compile src/main.ts --target android --fast-math -o dist/Nand2TetrisNative"
+  },
+  "devDependencies": {
+    "@perryts/perry": "latest"
+  },
+  "perry": {
+    "fastMath": true
+  }
+}
