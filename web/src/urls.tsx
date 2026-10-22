@@ -1,3 +1,9 @@
+import {
+  LAST_ROUTE_KEY,
+  ROUTES,
+  TOOLS,
+  type RouteId,
+} from "../../presentation/build/navigation.js";
 import { lazy } from "react";
 
 const Chip = lazy(() => import("./pages/chip"));
@@ -9,59 +15,35 @@ const Compiler = lazy(() => import("./pages/compiler"));
 const Util = lazy(() => import("./pages/util"));
 const About = lazy(() => import("./pages/about"));
 
-export const LAST_ROUTE_KEY = "lastRoute";
-
-export const TOOLS: Record<string, string> = {
-  chip: "Hardware Simulator",
-  cpu: "CPU Emulator",
-  asm: "Assembler",
-  vm: "VM Emulator",
-  bitmap: "Bitmap Editor",
-  compiler: "Jack Compiler",
-};
+export { LAST_ROUTE_KEY, TOOLS };
 
 export interface URL {
+  id: RouteId;
   href: string;
   tool?: string;
+  title: string;
   target: JSX.Element;
 }
 
-const URLs: Record<string, URL> = {
-  chip: {
-    href: "/chip",
-    tool: "chip",
-    target: <Chip />,
-  },
-  cpu: {
-    href: "/cpu",
-    tool: "cpu",
-    target: <CPU />,
-  },
-  asm: {
-    href: "/asm",
-    tool: "asm",
-    target: <ASM />,
-  },
-  vm: {
-    href: "/vm",
-    tool: `vm`,
-    target: <VM />,
-  },
-  compiler: {
-    href: "/compiler",
-    tool: "compiler",
-    target: <Compiler />,
-  },
-  bitmap: {
-    href: "/bitmap",
-    tool: "bitmap",
-    target: <BITMAP />,
-  },
-  util: {
-    href: "/util",
-    target: <Util />,
-  },
-  about: { href: "/about", target: <About /> },
+const targetByRoute: Readonly<Record<RouteId, JSX.Element>> = {
+  chip: <Chip />,
+  cpu: <CPU />,
+  asm: <ASM />,
+  vm: <VM />,
+  compiler: <Compiler />,
+  bitmap: <BITMAP />,
+  util: <Util />,
+  about: <About />,
 };
+
+const URLs = Object.fromEntries(
+  Object.values(ROUTES).map((route) => [
+    route.id,
+    {
+      ...route,
+      target: targetByRoute[route.id],
+    },
+  ]),
+) as Record<RouteId, URL>;
 
 export default URLs;
