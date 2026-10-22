@@ -1,0 +1,13 @@
+{
+  "name": "@nand2tetris/perry-native",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check:presentation": "../node_modules/.bin/tsc --build ../presentation",
+    "check": "npm run check:presentation && perry check src/main.ts",
+    "build:android": "mkdir -p dist && npm run check:presentation && perry compile src/main.ts --target android --fast-math -o dist/Nand2TetrisNative"
+  },
+  "devDependencies": {
+    "@perryts/perry": "0.5.1520"
+  }
+}
