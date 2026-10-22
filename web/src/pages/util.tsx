@@ -176,6 +176,7 @@ export const Util = () => {
     </article>
   );
 
-  return <SchemaLayout schema={UTIL_LAYOUT} slots={{ "util.body": body }} />;};
+  return <SchemaLayout schema={UTIL_LAYOUT} slots={{ "util.body": body }} />;
+};
 
 export default Util;
