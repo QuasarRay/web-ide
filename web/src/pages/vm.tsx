@@ -9,6 +9,7 @@ import { useStateInitializer } from "@nand2tetris/components/react";
 import { Runbar } from "@nand2tetris/components/runbar";
 import { BaseContext } from "@nand2tetris/components/stores/base.context";
 import { DEFAULT_TEST } from "@nand2tetris/components/stores/vm.store.js";
+import { VM_LAYOUT } from "../../../presentation/build/layouts.js";
 import { Format } from "@nand2tetris/simulator/cpu/memory.js";
 import { Timer } from "@nand2tetris/simulator/timer.js";
 import { ERRNO, isSysError } from "@nand2tetris/simulator/vm/os/errors.js";
@@ -18,8 +19,8 @@ import { VmFile } from "@nand2tetris/simulator/test/vmtst";
 import { AppContext } from "../App.context";
 import { isPath } from "../shell/file_select";
 import { PageContext } from "../Page.context";
+import { SchemaLayout } from "../presentation/SchemaLayout";
 import { Editor } from "../shell/editor";
-import { Panel } from "../shell/panel";
 import { TestPanel } from "../shell/test_panel";
 import "./vm.scss";
 
@@ -211,153 +212,173 @@ const VM = () => {
 
   const stackRef = useRef<Rerenderable>();
 
-  return (
-    <div
-      className={`Page VmPage grid ${
-        state.config.screenScale == 0
-          ? "no-screen"
-          : state.config.screenScale == 2
-            ? "large-screen"
-            : "normal"
-      }`}
-    >
-      <Panel
-        className="program"
-        isEditorPanel={true}
-        header={
-          <>
-            <div className="flex-0" style={{ whiteSpace: "nowrap" }}>
-              <Trans>VM Code</Trans>
-            </div>
-            <div className="flex-1">
-              {runnersAssigned && vmRunner.current && (
-                <Runbar
-                  prefix={
-                    <button
-                      className="flex-0"
-                      onClick={load}
-                      data-tooltip="Load files"
-                      data-placement="bottom"
-                    >
-                      📂
-                    </button>
-                  }
-                  runner={vmRunner.current}
-                  disabled={!state.controls.valid}
-                  speed={state.config.speed}
-                  onSpeedChange={(speed) => onSpeedChange(speed, false)}
-                />
-              )}
-            </div>
-          </>
-        }
-      >
-        <Editor
-          value={state.files.vm}
-          path={path ?? 'vm'}
-          onChange={(source: string) => {
-            actions.setVm(source);
-          }}
-          language={"vm"}
-          highlight={state.vm.showHighlight ? state.vm.highlight : undefined}
-          highlightType={state.controls.valid ? "highlight" : "error"}
-          error={state.controls.error}
-        />
-      </Panel>
-      <Panel className="vm" header={<Trans>VM Structures</Trans>}>
-        <>
-          {state.vm.Stack.length > 0 && (
-            <VMStackFrame
-              statics={state.vm.Statics}
-              temp={state.vm.Temp}
-              frame={state.vm.Stack[0]}
-            />
-          )}
-          <CallStack
-            stack={state.vm.Stack}
-            addedSysInit={state.vm.AddedSysInit}
+  const programHeader = (
+    <>
+      <div className="flex-0" style={{ whiteSpace: "nowrap" }}>
+        <Trans>VM Code</Trans>
+      </div>
+      <div className="flex-1">
+        {runnersAssigned && vmRunner.current && (
+          <Runbar
+            prefix={
+              <button
+                className="flex-0"
+                onClick={load}
+                data-tooltip="Load files"
+                data-placement="bottom"
+              >
+                📂
+              </button>
+            }
+            runner={vmRunner.current}
+            disabled={!state.controls.valid}
+            speed={state.config.speed}
+            onSpeedChange={(speed) => onSpeedChange(speed, false)}
           />
-        </>
-      </Panel>
-      <Panel className="display" style={{ gridArea: "display" }}>
-        <Screen
-          memory={state.vm.Screen}
-          showScaleControls={true}
-          scale={state.config.screenScale}
-          onScale={(scale) => {
-            dispatch.current({
-              action: "updateConfig",
-              payload: { screenScale: scale },
-            });
-          }}
-        />
-        <Keyboard keyboard={state.vm.Keyboard} />
-      </Panel>
-      <Memory
-        ref={stackRef}
-        name="RAM"
-        memory={state.vm.RAM}
-        initialAddr={256}
-        format={state.config.ram1Format}
-        onSetFormat={(format: Format) => {
-          dispatch.current({
-            action: "updateConfig",
-            payload: { ram1Format: format },
-          });
-        }}
-        showClear={false}
-      />
-      <Memory
-        name="RAM"
-        className="Stack"
-        memory={state.vm.RAM}
-        format={state.config.ram2Format}
-        onSetFormat={(format: Format) => {
-          dispatch.current({
-            action: "updateConfig",
-            payload: { ram2Format: format },
-          });
-        }}
-        cellLabels={[
-          "SP:",
-          "LCL:",
-          "ARG:",
-          "THIS:",
-          "THAT:",
-          "TEMP0:",
-          "TEMP1:",
-          "TEMP2:",
-          "TEMP3:",
-          "TEMP4:",
-          "TEMP5:",
-          "TEMP6:",
-          "TEMP7:",
-          "R13:",
-          "R14:",
-          "R15:",
-        ]}
-        onChange={() => {
-          stackRef.current?.rerender();
-        }}
-      />
+        )}
+      </div>
+    </>
+  );
 
-      {runnersAssigned && (
-        <TestPanel
-          runner={testRunner}
-          tst={[tst, setTst, state.test.highlight]}
-          out={[out, setOut]}
-          cmp={[cmp, setCmp]}
-          setPath={setPath}
-          showClear={true}
-          defaultTst={DEFAULT_TEST}
-          speed={state.config.testSpeed}
-          onSpeedChange={(speed) => onSpeedChange(speed, true)}
-          disabled={!state.controls.valid}
+  const programEditor = (
+    <Editor
+      value={state.files.vm}
+      path={path ?? "vm"}
+      onChange={(source: string) => {
+        actions.setVm(source);
+      }}
+      language={"vm"}
+      highlight={state.vm.showHighlight ? state.vm.highlight : undefined}
+      highlightType={state.controls.valid ? "highlight" : "error"}
+      error={state.controls.error}
+    />
+  );
+
+  const structuresBody = (
+    <>
+      {state.vm.Stack.length > 0 && (
+        <VMStackFrame
+          statics={state.vm.Statics}
+          temp={state.vm.Temp}
+          frame={state.vm.Stack[0]}
         />
       )}
-    </div>
+      <CallStack
+        stack={state.vm.Stack}
+        addedSysInit={state.vm.AddedSysInit}
+      />
+    </>
   );
-};
+
+  const displayBody = (
+    <>
+      <Screen
+        memory={state.vm.Screen}
+        showScaleControls={true}
+        scale={state.config.screenScale}
+        onScale={(scale) => {
+          dispatch.current({
+            action: "updateConfig",
+            payload: { screenScale: scale },
+          });
+        }}
+      />
+      <Keyboard keyboard={state.vm.Keyboard} />
+    </>
+  );
+
+  const ram = (
+    <Memory
+      ref={stackRef}
+      name="RAM"
+      memory={state.vm.RAM}
+      initialAddr={256}
+      format={state.config.ram1Format}
+      onSetFormat={(format: Format) => {
+        dispatch.current({
+          action: "updateConfig",
+          payload: { ram1Format: format },
+        });
+      }}
+      showClear={false}
+    />
+  );
+
+  const stack = (
+    <Memory
+      name="RAM"
+      className="Stack"
+      memory={state.vm.RAM}
+      format={state.config.ram2Format}
+      onSetFormat={(format: Format) => {
+        dispatch.current({
+          action: "updateConfig",
+          payload: { ram2Format: format },
+        });
+      }}
+      cellLabels={[
+        "SP:",
+        "LCL:",
+        "ARG:",
+        "THIS:",
+        "THAT:",
+        "TEMP0:",
+        "TEMP1:",
+        "TEMP2:",
+        "TEMP3:",
+        "TEMP4:",
+        "TEMP5:",
+        "TEMP6:",
+        "TEMP7:",
+        "R13:",
+        "R14:",
+        "R15:",
+      ]}
+      onChange={() => {
+        stackRef.current?.rerender();
+      }}
+    />
+  );
+
+  const test = runnersAssigned ? (
+    <TestPanel
+      runner={testRunner}
+      tst={[tst, setTst, state.test.highlight]}
+      out={[out, setOut]}
+      cmp={[cmp, setCmp]}
+      setPath={setPath}
+      showClear={true}
+      defaultTst={DEFAULT_TEST}
+      speed={state.config.testSpeed}
+      onSpeedChange={(speed) => onSpeedChange(speed, true)}
+      disabled={!state.controls.valid}
+    />
+  ) : undefined;
+
+  return (
+    <SchemaLayout
+      schema={VM_LAYOUT}
+      dynamicTokens={{
+        "vm.root": [
+          state.config.screenScale == 0
+            ? "screen-hidden"
+            : state.config.screenScale == 2
+              ? "screen-large"
+              : "screen-normal",
+        ],
+      }}
+      slots={{
+        "vm.program.header": programHeader,
+        "vm.program.editor": programEditor,
+        "vm.structures.header": <Trans>VM Structures</Trans>,
+        "vm.structures.body": structuresBody,
+        "vm.display.body": displayBody,
+        "vm.ram": ram,
+        "vm.stack": stack,
+        "vm.test": test,
+      }}
+    />
+  );};
 
 export default VM;
 
