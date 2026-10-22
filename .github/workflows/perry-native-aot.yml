@@ -2,7 +2,7 @@ name: Perry Native AOT Android
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, presentation-decoupling]
     paths:
       - "native/**"
       - "presentation/**"
