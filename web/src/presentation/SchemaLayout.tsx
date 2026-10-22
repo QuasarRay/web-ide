@@ -7,7 +7,11 @@ import {
   type SlotNode,
   type StyleToken,
 } from "../../../presentation/build/schema.js";
-import { Fragment, type ReactNode } from "react";
+import {
+  Fragment,
+  type HTMLAttributes,
+  type ReactNode,
+} from "react";
 import { Panel } from "../shell/panel";
 
 const WEB_CLASSES: Readonly<Record<string, string>> = {
@@ -47,20 +51,31 @@ function className(tokens: readonly StyleToken[]): string {
     .join(" ");
 }
 
-const renderer: LayoutRenderer<ReactNode, ReactNode> = {
-  container(
-    node: ContainerNode,
-    children: readonly ReactNode[],
-    tokens: readonly StyleToken[],
-  ) {
-    return (
-      <div className={className(tokens)}>
-        {children.map((child, index) => (
-          <Fragment key={node.children[index]?.id ?? index}>{child}</Fragment>
-        ))}
-      </div>
-    );
-  },
+function makeRenderer(
+  containerProps: Readonly<
+    Record<string, HTMLAttributes<HTMLDivElement> | undefined>
+  >,
+): LayoutRenderer<ReactNode, ReactNode> {
+  return {
+    container(
+      node: ContainerNode,
+      children: readonly ReactNode[],
+      tokens: readonly StyleToken[],
+    ) {
+      const props = containerProps[node.id];
+      return (
+        <div
+          {...props}
+          className={[className(tokens), props?.className ?? ""]
+            .filter((value) => value.length > 0)
+            .join(" ")}
+        >
+          {children.map((child, index) => (
+            <Fragment key={node.children[index]?.id ?? index}>{child}</Fragment>
+          ))}
+        </div>
+      );
+    },
 
   panel(
     node: PanelNode,
@@ -84,22 +99,30 @@ const renderer: LayoutRenderer<ReactNode, ReactNode> = {
     );
   },
 
-  slot(node: SlotNode, value: ReactNode | undefined) {
-    if (value === undefined && !node.optional) {
-      throw new Error(`Missing required presentation slot: ${node.slot}`);
-    }
-    return value ?? null;
-  },
-};
+    slot(node: SlotNode, value: ReactNode | undefined) {
+      if (value === undefined && !node.optional) {
+        throw new Error(`Missing required presentation slot: ${node.slot}`);
+      }
+      return value ?? null;
+    },
+  };
+}
 
 export function SchemaLayout({
   schema,
   slots,
   dynamicTokens,
+  containerProps = {},
 }: {
   schema: PageLayout;
   slots: Readonly<Record<string, ReactNode | undefined>>;
   dynamicTokens?: Readonly<Record<string, readonly StyleToken[] | undefined>>;
+  containerProps?: Readonly<
+    Record<string, HTMLAttributes<HTMLDivElement> | undefined>
+  >;
 }) {
-  return renderLayout(schema.root, renderer, { slots, dynamicTokens });
+  return renderLayout(schema.root, makeRenderer(containerProps), {
+    slots,
+    dynamicTokens,
+  });
 }
