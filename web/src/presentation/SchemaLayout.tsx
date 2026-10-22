@@ -1,5 +1,6 @@
 import {
   type ContainerNode,
+  type GroupNode,
   type LayoutRenderer,
   type PageLayout,
   type PanelNode,
@@ -58,6 +59,16 @@ function makeRenderer(
   >,
 ): LayoutRenderer<ReactNode, ReactNode> {
   return {
+    group(node: GroupNode, children: readonly ReactNode[]) {
+      return (
+        <>
+          {children.map((child, index) => (
+            <Fragment key={node.children[index]?.id ?? index}>{child}</Fragment>
+          ))}
+        </>
+      );
+    },
+
     container(
       node: ContainerNode,
       children: readonly ReactNode[],
