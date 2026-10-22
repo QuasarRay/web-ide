@@ -1,116 +1,75 @@
+import { BaseContext } from "@nand2tetris/components/stores/base.context";
 import {
-  BaseContext,
-  useBaseContext,
-} from "@nand2tetris/components/stores/base.context";
-import { RefObject, useContext, useRef } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { AppContext, useAppContext } from "../App.context";
+  GUIDE_LINKS,
+  HEADER_ACTIONS,
+  LAST_ROUTE_KEY,
+  ROUTES,
+  TOOLS,
+  type RouteId,
+  type ShellActionSchema,
+} from "../../../presentation/build/navigation.js";
+import { useContext } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { AppContext } from "../App.context";
 import { PageContext } from "../Page.context";
 import { Icon } from "../pico/icon";
-import URLs, { LAST_ROUTE_KEY, TOOLS, URL } from "../urls";
-
-interface HeaderButton {
-  tooltip: string;
-  icon: string;
-  href?: string;
-  tool?: string;
-  target?: JSX.Element;
-  onClick?: (context: HeaderButtonContext) => void;
-}
-
-interface HeaderButtonContext {
-  appContext: ReturnType<typeof useAppContext>;
-  baseContext: ReturnType<typeof useBaseContext>;
-  pathname: string;
-}
-
-function headerButtonFromURL(url: URL, icon: string, tooltip?: string) {
-  return {
-    href: url.href,
-    tool: url.tool,
-    tooltip:
-      tooltip ??
-      (url.tool && Object.keys(TOOLS).includes(url.tool)
-        ? TOOLS[url.tool]
-        : ""),
-    icon,
-    target: url.target,
-  };
-}
-
-// When updating these, also edit service-worker.ts
-const guideLinks: Record<string, string> = {
-  chip: "user_guide/chip.pdf",
-  cpu: "user_guide/cpu.pdf",
-  asm: "user_guide/asm.pdf",
-  vm: "user_guide/vm.pdf",
-  compiler: "user_guide/compiler.pdf",
-  bitmap: "user_guide/bitmap_editor.pdf",
-};
 
 const GUIDE_NOT_AVAILABLE_MESSAGE = "Guide not available for this tool";
 
-function openGuide(context: HeaderButtonContext) {
-  const pdfLink = guideLinks[context.pathname];
-  if (!pdfLink) {
-    context.baseContext.setStatus(GUIDE_NOT_AVAILABLE_MESSAGE);
-    return;
-  }
-  // Must call window.open synchronously inside the click handler — any
-  // intervening await drops the user-gesture flag and the popup blocker
-  // silently denies the open.
-  window.open(
-    import.meta.env.BASE_URL + pdfLink,
-    "_blank",
-    "width=1000,height=800",
-  );
+function routeFromPath(pathname: string) {
+  return Object.values(ROUTES).find((route) => route.href === pathname);
 }
-
-const headerButtons: HeaderButton[] = [
-  headerButtonFromURL(URLs["chip"], "memory"),
-  headerButtonFromURL(URLs["cpu"], "developer_board"),
-  headerButtonFromURL(URLs["asm"], "list_alt"),
-  headerButtonFromURL(URLs["vm"], "computer"),
-  // TODO(https://github.com/nand2tetris/web-ide/issues/349)
-  // reenable when this is resolved for Firefox and safari
-  // https://caniuse.com/?search=showDirectoryPicker
-  headerButtonFromURL(URLs["compiler"], "code"),
-  headerButtonFromURL(URLs["bitmap"], "grid_on"),
-  headerButtonFromURL(URLs["util"], "function", "Converter Tool"),
-  {
-    onClick: openGuide,
-    tooltip: `Guide`,
-    icon: "menu_book",
-  },
-  {
-    href: "https://github.com/nand2tetris/web-ide/issues/new/choose",
-    icon: "bug_report",
-    tooltip: "Bug Report",
-  },
-  {
-    onClick: (context) => {
-      context.appContext.settings.open();
-    },
-    icon: "settings",
-    tooltip: "Settings",
-  },
-  headerButtonFromURL(URLs["about"], "info", "About"),
-];
 
 const Header = () => {
   const appContext = useContext(AppContext);
   const baseContext = useContext(BaseContext);
   const { title, setTool } = useContext(PageContext);
-  const { setStatus } = useContext(BaseContext);
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const redirectRefs: Record<string, RefObject<HTMLAnchorElement>> = {};
-  for (const button of headerButtons) {
-    if (button.href) {
-      redirectRefs[button.href] = useRef<HTMLAnchorElement>(null);
+  const activeRoute = routeFromPath(location.pathname);
+
+  const openGuide = (routeId?: RouteId) => {
+    const pdfLink = routeId ? GUIDE_LINKS[routeId] : undefined;
+    if (!pdfLink) {
+      baseContext.setStatus(GUIDE_NOT_AVAILABLE_MESSAGE);
+      return;
     }
-  }
 
-  const pathname = useLocation().pathname.replaceAll("/", "");
+    // Keep this synchronous inside the click event so popup blockers retain
+    // the browser user-gesture permission.
+    window.open(
+      import.meta.env.BASE_URL + pdfLink,
+      "_blank",
+      "width=1000,height=800",
+    );
+  };
+
+  const runAction = (action: ShellActionSchema) => {
+    baseContext.setStatus("");
+
+    switch (action.kind) {
+      case "route": {
+        if (!action.route) return;
+        const route = ROUTES[action.route];
+        setTool(route.tool);
+        localStorage.setItem(LAST_ROUTE_KEY, route.href);
+        navigate(route.href);
+        return;
+      }
+      case "external":
+        if (action.href) {
+          window.open(action.href, "new");
+        }
+        return;
+      case "command":
+        if (action.command === "settings") {
+          appContext.settings.open();
+        } else if (action.command === "guide") {
+          openGuide(activeRoute?.id);
+        }
+    }
+  };
 
   return (
     <header>
@@ -126,54 +85,21 @@ const Header = () => {
                 NAND2Tetris
               </a>
             </strong>
-            {TOOLS[pathname] && ` / ${TOOLS[pathname]}`}
+            {activeRoute?.tool && ` / ${TOOLS[activeRoute.tool]}`}
             {title && ` / ${title}`}
           </li>
         </ul>
         <ul className="icon-list">
-          {headerButtons.map(
-            ({ href, icon, onClick, tooltip, target, tool }) => {
-              return (
-                <li
-                  key={icon}
-                  data-tooltip={tooltip}
-                  data-placement="bottom"
-                  onClick={() => {
-                    setTool(tool);
-                    setStatus("");
-                    if (onClick) {
-                      onClick?.({ appContext, baseContext, pathname });
-                    } else {
-                      if (href) {
-                        if (target) {
-                          localStorage.setItem(LAST_ROUTE_KEY, href);
-                        }
-
-                        redirectRefs[href].current?.click();
-                      }
-                    }
-                  }}
-                >
-                  <Icon name={icon}></Icon>
-                  {href &&
-                    (target ? (
-                      <Link
-                        to={href}
-                        ref={redirectRefs[href]}
-                        style={{ display: "none" }}
-                      />
-                    ) : (
-                      <a
-                        href={href}
-                        target="new"
-                        ref={redirectRefs[href]}
-                        style={{ display: "none" }}
-                      />
-                    ))}
-                </li>
-              );
-            },
-          )}
+          {HEADER_ACTIONS.map((action) => (
+            <li
+              key={action.id}
+              data-tooltip={action.tooltip}
+              data-placement="bottom"
+              onClick={() => runAction(action)}
+            >
+              <Icon name={action.icon}></Icon>
+            </li>
+          ))}
         </ul>
       </nav>
     </header>
