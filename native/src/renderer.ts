@@ -6,8 +6,8 @@ import {
   setPadding,
   Text,
   textSetFontSize,
-  type Widget,
   VStack,
+  type Widget,
   widgetSetBackgroundColor,
 } from "perry/ui";
 
