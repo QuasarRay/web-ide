@@ -1,8 +1,8 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { extname, join, relative } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const root = new URL("./src/", import.meta.url);
-const rootPath = root.pathname;
+const rootPath = fileURLToPath(new URL("./src/", import.meta.url));
 
 const forbidden = [
   { pattern: /from\s+["']react(?:\/[^"']*)?["']/, reason: "React import" },
