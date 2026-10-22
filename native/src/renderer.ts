@@ -69,16 +69,23 @@ const renderer = {
   },
 };
 
+export function renderNativeTree(
+  schema: any,
+  slots: Record<string, any | undefined>,
+  dynamicTokens: Record<string, string[] | undefined> = {},
+): any {
+  return renderLayout(schema.root, renderer, {
+    slots,
+    dynamicTokens,
+  });
+}
+
 export function renderNativeLayout(
   schema: any,
   slots: Record<string, any | undefined>,
   dynamicTokens: Record<string, string[] | undefined> = {},
 ): any {
-  const root = renderLayout(schema.root, renderer, {
-    slots,
-    dynamicTokens,
-  });
   const scroll = ScrollView();
-  scrollviewSetChild(scroll, root);
+  scrollviewSetChild(scroll, renderNativeTree(schema, slots, dynamicTokens));
   return scroll;
 }
