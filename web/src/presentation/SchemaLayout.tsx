@@ -27,6 +27,7 @@ const WEB_CLASSES: Readonly<Record<string, string>> = {
   "bitmap-canvas": "canvas-panel",
   "bitmap-code": "code-panel",
   "bitmap-controls": "controls-panel",
+  "content-container": "container",
   grid: "grid",
   io: "IO",
   source: "source",
