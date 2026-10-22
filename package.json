@@ -17,7 +17,7 @@
     "cli": "node cli",
     "ci": "npm run check && npm run test:ci",
     "precheck": "npm -w web run extract && npm -w web run lingui",
-    "check": "npm run check:format && npm run check:types && npm run check:lint",
+    "check": "npm run check:format && npm run check:presentation && npm run check:types && npm run check:lint",
     "clean": "shx rm -rf **/node_modules **/tsconfig.tsbuildinfo **/build",
     "format": "biome format --write",
     "fix": "biome check --write --unsafe",
@@ -38,7 +38,8 @@
     "web": "npm run start -w web",
     "start": "npm run web",
     "preinstall-cli": "npm run build -w projects && npm run build -w runner && npm run build -w simulator && npm run build -w cli",
-    "install-cli": "npm i -g cli"
+    "install-cli": "npm i -g cli",
+    "check:presentation": "node presentation/check-boundary.mjs && node_modules/.bin/tsc --build presentation"
   },
   "workspaces": [
     "cli",
