@@ -2,12 +2,13 @@ import { Trans } from "@lingui/react/macro";
 import { Runbar } from "@nand2tetris/components/runbar";
 import { BaseContext } from "@nand2tetris/components/stores/base.context";
 import { Table } from "@nand2tetris/components/table";
+import { ASM_LAYOUT } from "../../../presentation/build/layouts.js";
 import { ASM } from "@nand2tetris/simulator/languages/asm.js";
 import { loadHack } from "@nand2tetris/simulator/loader.js";
 import { Timer } from "@nand2tetris/simulator/timer";
 import { useContext, useEffect, useRef, useState } from "react";
+import { SchemaLayout } from "../presentation/SchemaLayout";
 import { Editor } from "../shell/editor";
-import { Panel } from "../shell/panel";
 
 import { LOADING } from "@nand2tetris/components/messages.js";
 import { ROM } from "@nand2tetris/simulator/cpu/memory";
@@ -139,202 +140,210 @@ export const Asm = () => {
     redirectRef.current?.click();
   };
 
-  return (
-    <div className={`AsmPage grid ${showSymbolTable ? "" : "hide-sym"}`}>
-      <Panel
-        className="source"
-        isEditorPanel={true}
-        header={
-          <>
-            <div>
-              <Trans>Source</Trans>
-            </div>
-            <div className="flex-1">
-              {runnerAssigned && runner.current && (
-                <Runbar
-                  runner={runner.current}
-                  disabled={state.error != undefined}
-                  prefix={
-                    <button
-                      className="flex-0"
-                      onClick={loadAsm}
-                      data-tooltip="Load file"
-                      data-placement="bottom"
-                    >
-                      📂
-                    </button>
-                  }
-                  overrideTooltips={{ step: "Translate", run: "Translate all" }}
-                  speed={state.config.speed}
-                  onSpeedChange={onSpeedChange}
-                />
-              )}
-            </div>
-            {!localFsRoot && (
-              <fieldset role="group">
-                <button
-                  data-tooltip="Download"
-                  data-placement="left"
-                  onClick={downloadAsm}
-                >
-                  ⬇️
-                </button>
-              </fieldset>
-            )}
-          </>
-        }
-      >
-        <Editor
-          value={state.asm}
-          path={state.path??"tmp.asm"}
-          error={state.error}
-          alwaysRecenter={false}
-          onChange={(source: string) => {
-            actions.setAsm(source);
-          }}
-          onCursorPositionChange={(index) => {
-            if (index == sourceCursorPos.current) {
-              return;
+  const sourceHeader = (
+    <>
+      <div>
+        <Trans>Source</Trans>
+      </div>
+      <div className="flex-1">
+        {runnerAssigned && runner.current && (
+          <Runbar
+            runner={runner.current}
+            disabled={state.error != undefined}
+            prefix={
+              <button
+                className="flex-0"
+                onClick={loadAsm}
+                data-tooltip="Load file"
+                data-placement="bottom"
+              >
+                📂
+              </button>
             }
-            sourceCursorPos.current = index;
-
-            // wait some time to allow the user to release the mouse before updating the highligh
-            // (otherwise we auto-scroll while the mouse is pressed and cause unwanted text selection)
-            setTimeout(() => {
-              actions.updateHighlight(index, true);
-            }, 100);
-          }}
-          grammar={ASM.parser}
-          language={"asm"}
-          highlight={state.translating ? state.sourceHighlight : undefined}
-          lineNumberTransform={(n) => {
-            if (!state.translating) {
-              return "";
-            }
-            const num = state.lineNumbers[n] as number | undefined;
-            return (num === undefined ? "" : num).toString();
-          }}
-        />
-      </Panel>
-      <Panel
-        className="result"
-        isEditorPanel={true}
-        header={
-          <>
-            <div>
-              <Trans>Binary Code</Trans>
-            </div>
-            <div>
-              <a ref={fileDownloadRef} style={{ display: "none" }} />
-              <Link
-                ref={redirectRef}
-                style={{ display: "none" }}
-                to={URLs["cpu"].href}
-              />
-              <fieldset role="group">
-                <button
-                  data-tooltip="Load in CPU Emulator"
-                  data-placement="left"
-                  onClick={loadToCpu}
-                >
-                  ↩️
-                </button>
-                {!localFsRoot && (
-                  <button
-                    data-tooltip="Download"
-                    data-placement="left"
-                    onClick={downloadHack}
-                  >
-                    ⬇️
-                  </button>
-                )}
-              </fieldset>
-            </div>
-          </>
-        }
-      >
-        <Editor
-          value={state.result}
-          path={(state.path??"tmp.asm").replace(/\.asm$/, '.hack')}
-          highlight={state.resultHighlight}
-          disabled={true}
-          onChange={function (_source: string): void {
-            return;
-          }}
-          onCursorPositionChange={(index) => {
-            if (index == resultCursorPos.current) {
-              return;
-            }
-            resultCursorPos.current = index;
-            actions.updateHighlight(index, false);
-          }}
-          grammar={undefined}
-          language={""}
-          alwaysRecenter={false}
-          lineNumberTransform={(n) => (n - 1).toString()}
-        />
-      </Panel>
-      <Panel
-        className="sym"
-        isEditorPanel={true}
-        header={
-          <>
-            <div className="flex-1">
-              <Trans>Symbol Table</Trans>
-            </div>
-            <input
-              type="checkbox"
-              role="switch"
-              checked={showSymbolTable}
-              onChange={() => setShowSymbolTable(!showSymbolTable)}
-            />
-          </>
-        }
-      >
-        {state.translating && showSymbolTable && (
-          <Table values={state.symbols} />
+            overrideTooltips={{ step: "Translate", run: "Translate all" }}
+            speed={state.config.speed}
+            onSpeedChange={onSpeedChange}
+          />
         )}
-      </Panel>
-      <Panel
-        className="compare"
-        header={
-          <>
-            <div>
-              <Trans>Compare Code</Trans>
-              {state.compareName && `: ${state.compareName}`}
-            </div>
-            <fieldset role="group">
-              <button onClick={loadCompare}>📂</button>
-            </fieldset>
-            <div className="flex-1" />
-            <fieldset role="group">
-              <button onClick={compare}>Compare</button>
-            </fieldset>
-          </>
+      </div>
+      {!localFsRoot && (
+        <fieldset role="group">
+          <button
+            data-tooltip="Download"
+            data-placement="left"
+            onClick={downloadAsm}
+          >
+            ⬇️
+          </button>
+        </fieldset>
+      )}
+    </>
+  );
+
+  const sourceEditor = (
+    <Editor
+      value={state.asm}
+      path={state.path ?? "tmp.asm"}
+      error={state.error}
+      alwaysRecenter={false}
+      onChange={(source: string) => {
+        actions.setAsm(source);
+      }}
+      onCursorPositionChange={(index) => {
+        if (index == sourceCursorPos.current) {
+          return;
         }
-      >
-        <Editor
-          value={state.compare}
-          path={(state.path??"tmp.asm").replace(/\.asm$/, '.cmp')}
-          highlight={state.translating ? state.resultHighlight : undefined}
-          highlightType={state.compareError ? "error" : "highlight"}
-          alwaysRecenter={false}
-          onChange={function (_source: string): void {
-            return;
-          }}
-          disabled={true}
-          onCursorPositionChange={(index) => {
-            if (index == resultCursorPos.current) {
-              return;
-            }
-            resultCursorPos.current = index;
-            actions.updateHighlight(index, false);
-          }}
-          language={""}
-          lineNumberTransform={(n) => (n - 1).toString()}
+        sourceCursorPos.current = index;
+
+        setTimeout(() => {
+          actions.updateHighlight(index, true);
+        }, 100);
+      }}
+      grammar={ASM.parser}
+      language={"asm"}
+      highlight={state.translating ? state.sourceHighlight : undefined}
+      lineNumberTransform={(n) => {
+        if (!state.translating) {
+          return "";
+        }
+        const num = state.lineNumbers[n] as number | undefined;
+        return (num === undefined ? "" : num).toString();
+      }}
+    />
+  );
+
+  const resultHeader = (
+    <>
+      <div>
+        <Trans>Binary Code</Trans>
+      </div>
+      <div>
+        <a ref={fileDownloadRef} style={{ display: "none" }} />
+        <Link
+          ref={redirectRef}
+          style={{ display: "none" }}
+          to={URLs["cpu"].href}
         />
-      </Panel>
-    </div>
+        <fieldset role="group">
+          <button
+            data-tooltip="Load in CPU Emulator"
+            data-placement="left"
+            onClick={loadToCpu}
+          >
+            ↩️
+          </button>
+          {!localFsRoot && (
+            <button
+              data-tooltip="Download"
+              data-placement="left"
+              onClick={downloadHack}
+            >
+              ⬇️
+            </button>
+          )}
+        </fieldset>
+      </div>
+    </>
+  );
+
+  const resultEditor = (
+    <Editor
+      value={state.result}
+      path={(state.path ?? "tmp.asm").replace(/\.asm$/, ".hack")}
+      highlight={state.resultHighlight}
+      disabled={true}
+      onChange={function (_source: string): void {
+        return;
+      }}
+      onCursorPositionChange={(index) => {
+        if (index == resultCursorPos.current) {
+          return;
+        }
+        resultCursorPos.current = index;
+        actions.updateHighlight(index, false);
+      }}
+      grammar={undefined}
+      language={""}
+      alwaysRecenter={false}
+      lineNumberTransform={(n) => (n - 1).toString()}
+    />
+  );
+
+  const symbolsHeader = (
+    <>
+      <div className="flex-1">
+        <Trans>Symbol Table</Trans>
+      </div>
+      <input
+        type="checkbox"
+        role="switch"
+        checked={showSymbolTable}
+        onChange={() => setShowSymbolTable(!showSymbolTable)}
+      />
+    </>
+  );
+
+  const symbolsBody =
+    state.translating && showSymbolTable ? (
+      <Table values={state.symbols} />
+    ) : undefined;
+
+  const compareHeader = (
+    <>
+      <div>
+        <Trans>Compare Code</Trans>
+        {state.compareName && `: ${state.compareName}`}
+      </div>
+      <fieldset role="group">
+        <button onClick={loadCompare}>📂</button>
+      </fieldset>
+      <div className="flex-1" />
+      <fieldset role="group">
+        <button onClick={compare}>Compare</button>
+      </fieldset>
+    </>
+  );
+
+  const compareEditor = (
+    <Editor
+      value={state.compare}
+      path={(state.path ?? "tmp.asm").replace(/\.asm$/, ".cmp")}
+      highlight={state.translating ? state.resultHighlight : undefined}
+      highlightType={state.compareError ? "error" : "highlight"}
+      alwaysRecenter={false}
+      onChange={function (_source: string): void {
+        return;
+      }}
+      disabled={true}
+      onCursorPositionChange={(index) => {
+        if (index == resultCursorPos.current) {
+          return;
+        }
+        resultCursorPos.current = index;
+        actions.updateHighlight(index, false);
+      }}
+      language={""}
+      lineNumberTransform={(n) => (n - 1).toString()}
+    />
+  );
+
+  return (
+    <SchemaLayout
+      schema={ASM_LAYOUT}
+      dynamicTokens={{
+        "asm.root": showSymbolTable ? [] : ["hide-symbols"],
+      }}
+      slots={{
+        "asm.source.header": sourceHeader,
+        "asm.source.editor": sourceEditor,
+        "asm.result.header": resultHeader,
+        "asm.result.editor": resultEditor,
+        "asm.symbols.header": symbolsHeader,
+        "asm.symbols.body": symbolsBody,
+        "asm.compare.header": compareHeader,
+        "asm.compare.editor": compareEditor,
+      }}
+    />
   );
 };
 

@@ -21,6 +21,7 @@ import {
 } from "@nand2tetris/components/pinout.js";
 import { useStateInitializer } from "@nand2tetris/components/react.js";
 import { BaseContext } from "@nand2tetris/components/stores/base.context.js";
+import { CHIP_LAYOUT } from "../../../presentation/build/layouts.js";
 import { hasBuiltinChip } from "@nand2tetris/simulator/chip/builtins/index.js";
 import { HDL } from "@nand2tetris/simulator/languages/hdl.js";
 import { Timer } from "@nand2tetris/simulator/timer.js";
@@ -30,8 +31,9 @@ import { AppContext } from "../App.context";
 import { PageContext } from "../Page.context";
 import { registerCustomChip, resetCustomChips } from "../languages/hdl";
 import { reloadHdlLanguage } from "../languages/loader";
+import { SchemaLayout } from "../presentation/SchemaLayout";
 import { Editor } from "../shell/editor";
-import { Accordian, Panel } from "../shell/panel";
+import { Accordian } from "../shell/panel";
 import { zip } from "../shell/zip";
 
 interface CompileInput {
@@ -259,67 +261,63 @@ export const Chip = () => {
       </fieldset>
     </>
   );
-  const hdlPanel = (
-    <Panel
-      className="_hdl_panel"
-      isEditorPanel={true}
-      header={
-        <>
-          <div tabIndex={0}>HDL</div>
-          <label
-            style={{
-              visibility: hasBuiltinChip(state.controls.chipName)
-                ? "visible"
-                : "hidden",
-            }}
-          >
-            <input
-              type="checkbox"
-              role="switch"
-              checked={state.controls.usingBuiltin}
-              onChange={toggleUseBuiltin}
-            />
-            <Trans>Builtin</Trans>
-          </label>
-          <div style={{ width: "30px" }}></div>
-          <div className="flex-4">{selectors}</div>
-          <fieldset role="group">
-            <button
-              data-tooltip="Open an HDL file directly"
-              data-placement="bottom"
-              onClick={loadFile}
-            >
-              📂
-            </button>
-            <a ref={downloadRef} style={{ display: "none" }} />
-            <button
-              onClick={downloadProject}
-              data-tooltip={t`Download .hdl files`}
-              data-placement="left"
-            >
-              ⬇️
-            </button>
-          </fieldset>
-        </>
-      }
-    >
-      <Editor
-        className="flex-1"
-        value={hdl}
-        error={state.controls.error}
-        onChange={async (source) => {
-          setHdl(source);
-          if (!state.controls.usingBuiltin) {
-            actions.saveChip(source);
-          }
-          compile.current(state.controls.usingBuiltin ? {} : { hdl: source });
+  const hdlHeader = (
+    <>
+      <div tabIndex={0}>HDL</div>
+      <label
+        style={{
+          visibility: hasBuiltinChip(state.controls.chipName)
+            ? "visible"
+            : "hidden",
         }}
-        grammar={HDL.parser}
-        language={"hdl"}
-        path={`${state.controls.project}/${state.controls.chipName}.hdl`}
-        disabled={state.controls.usingBuiltin || state.controls.chipName == ""}
-      />
-    </Panel>
+      >
+        <input
+          type="checkbox"
+          role="switch"
+          checked={state.controls.usingBuiltin}
+          onChange={toggleUseBuiltin}
+        />
+        <Trans>Builtin</Trans>
+      </label>
+      <div style={{ width: "30px" }} />
+      <div className="flex-4">{selectors}</div>
+      <fieldset role="group">
+        <button
+          data-tooltip="Open an HDL file directly"
+          data-placement="bottom"
+          onClick={loadFile}
+        >
+          📂
+        </button>
+        <a ref={downloadRef} style={{ display: "none" }} />
+        <button
+          onClick={downloadProject}
+          data-tooltip={t`Download .hdl files`}
+          data-placement="left"
+        >
+          ⬇️
+        </button>
+      </fieldset>
+    </>
+  );
+
+  const hdlBody = (
+    <Editor
+      className="flex-1"
+      value={hdl}
+      error={state.controls.error}
+      onChange={async (source) => {
+        setHdl(source);
+        if (!state.controls.usingBuiltin) {
+          actions.saveChip(source);
+        }
+        compile.current(state.controls.usingBuiltin ? {} : { hdl: source });
+      }}
+      grammar={HDL.parser}
+      language={"hdl"}
+      path={`${state.controls.project}/${state.controls.chipName}.hdl`}
+      disabled={state.controls.usingBuiltin || state.controls.chipName == ""}
+    />
   );
 
   const [inputValid, setInputValid] = useState(true);
@@ -387,40 +385,35 @@ export const Chip = () => {
 
   const pinResetDispatcher = new PinResetDispatcher();
 
-  const pinsPanel = (
-    <Panel
-      className="_parts_panel"
-      header={
-        <>
-          <div>
-            <Trans>Chip</Trans> {state.controls.chipName}
-          </div>
-          {chipButtons}
-        </>
-      }
-    >
-      {state.sim.invalid ? (
-        <Trans>Syntax errors in the HDL code or test</Trans>
-      ) : (
-        state.controls.chipName != "" && (
-          <>
-            <PinContext.Provider value={pinResetDispatcher}>
-              <FullPinout
-                sim={state.sim}
-                toggle={actions.toggle}
-                setInputValid={setInputValid}
-                hideInternal={state.controls.usingBuiltin}
-              />
-            </PinContext.Provider>
-            {visualizations.length > 0 && (
-              <Accordian summary={<Trans>Visualization</Trans>} open={true}>
-                <main>{visualizations.map(([_, v]) => v)}</main>
-              </Accordian>
-            )}
-          </>
-        )
-      )}
-    </Panel>
+  const pinsHeader = (
+    <>
+      <div>
+        <Trans>Chip</Trans> {state.controls.chipName}
+      </div>
+      {chipButtons}
+    </>
+  );
+
+  const pinsBody = state.sim.invalid ? (
+    <Trans>Syntax errors in the HDL code or test</Trans>
+  ) : (
+    state.controls.chipName != "" && (
+      <>
+        <PinContext.Provider value={pinResetDispatcher}>
+          <FullPinout
+            sim={state.sim}
+            toggle={actions.toggle}
+            setInputValid={setInputValid}
+            hideInternal={state.controls.usingBuiltin}
+          />
+        </PinContext.Provider>
+        {visualizations.length > 0 && (
+          <Accordian summary={<Trans>Visualization</Trans>} open={true}>
+            <main>{visualizations.map(([_, v]) => v)}</main>
+          </Accordian>
+        )}
+      </>
+    )
   );
 
   const testPanel = (
@@ -458,13 +451,16 @@ export const Chip = () => {
   );
 
   return (
-    <>
-      <div className="Page ChipPage grid">
-        {hdlPanel}
-        {pinsPanel}
-        {testPanel}
-      </div>
-    </>
+    <SchemaLayout
+      schema={CHIP_LAYOUT}
+      slots={{
+        "chip.hdl.header": hdlHeader,
+        "chip.hdl.body": hdlBody,
+        "chip.pins.header": pinsHeader,
+        "chip.pins.body": pinsBody,
+        "chip.test": testPanel,
+      }}
+    />
   );
 };
 

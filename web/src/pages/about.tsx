@@ -1,3 +1,5 @@
+import { ABOUT_LAYOUT } from "../../../presentation/build/layouts.js";
+import { SchemaLayout } from "../presentation/SchemaLayout";
 import Markdown from "../shell/markdown";
 import aboutContent from "./ABOUT.md?raw";
 
@@ -11,15 +13,24 @@ const useVersion = () => {
 
 export const About = () => {
   const version = useVersion();
+
+  const body = (
+    <>
+      <Markdown>{aboutContent}</Markdown>
+      <p>
+        <b>Version</b> <code>{version}</code>
+      </p>
+    </>
+  );
+
   return (
-    <div style={{ overflowY: "scroll" }}>
-      <div className="container">
-        <Markdown>{aboutContent}</Markdown>
-        <p>
-          <b>Version</b> <code>{version}</code>
-        </p>
-      </div>
-    </div>
+    <SchemaLayout
+      schema={ABOUT_LAYOUT}
+      containerProps={{
+        "about.root": { style: { overflowY: "scroll" } },
+      }}
+      slots={{ "about.body": body }}
+    />
   );
 };
 

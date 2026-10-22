@@ -1,6 +1,10 @@
 import { i18n } from "@lingui/core";
 import { I18nProvider } from "@lingui/react";
 import {
+  APP_LAYOUT,
+  APP_ROUTER_LAYOUT,
+} from "../../presentation/build/layouts.js";
+import {
   BaseContext,
   useBaseContext,
 } from "@nand2tetris/components/stores/base.context.js";
@@ -20,6 +24,7 @@ import urls from "./urls";
 import { ErrorBoundary, RenderError } from "./ErrorBoundary";
 import { PageContextProvider } from "./Page.context";
 import { Redirect } from "./pages/redirect";
+import { SchemaLayout } from "./presentation/SchemaLayout";
 import "./pico/flex.scss";
 import "./pico/pico.scss";
 import { TrackingBanner } from "./tracking";
@@ -68,33 +73,51 @@ function App() {
         : appContext.theme;
   }, [appContext.theme]);
 
+  const content = (
+    <ErrorBoundary fallback={RenderError}>
+      <Suspense fallback={<div>Loading...</div>}>
+        <Routes>
+          <Route path="/" element={<Redirect />} />
+          {Object.values(urls).map(({ href, target }) => (
+            <Route key={href} path={href} element={target} />
+          ))}
+        </Routes>
+      </Suspense>
+    </ErrorBoundary>
+  );
+
+  const router = (
+    <Router basename={import.meta.env.BASE_URL}>
+      <SchemaLayout
+        schema={APP_ROUTER_LAYOUT}
+        slots={{
+          "app.header": <Header />,
+          "app.content": content,
+          "app.footer": <Footer />,
+          "app.tracking": <TrackingBanner />,
+        }}
+      />
+    </Router>
+  );
+
+  const shell = (
+    <SchemaLayout
+      schema={APP_LAYOUT}
+      slots={{
+        "app.settings": <Settings />,
+        "app.file-picker": <FilePicker />,
+        "app.router": router,
+        "app.tooltip": <Tooltip />,
+      }}
+    />
+  );
+
   return (
     <I18nProvider i18n={i18n}>
       <BaseContext.Provider value={baseContext}>
         <AppContext.Provider value={appContext}>
           {initialized ? (
-            <PageContextProvider>
-              <Settings />
-              <FilePicker />
-              <Router basename={import.meta.env.BASE_URL}>
-                <Header />
-                <main className="flex flex-1">
-                  <ErrorBoundary fallback={RenderError}>
-                    <Suspense fallback={<div>Loading...</div>}>
-                      <Routes>
-                        <Route path="/" element={<Redirect />} />
-                        {Object.values(urls).map(({ href, target }) => (
-                          <Route key={href} path={href} element={target} />
-                        ))}
-                      </Routes>
-                    </Suspense>
-                  </ErrorBoundary>
-                </main>
-                <Footer />
-                <TrackingBanner />
-              </Router>
-              <Tooltip />
-            </PageContextProvider>
+            <PageContextProvider>{shell}</PageContextProvider>
           ) : (
             <div>Initializing...</div>
           )}

@@ -3,6 +3,7 @@ import { t } from "@lingui/core/macro";
 import { Trans } from "@lingui/react/macro";
 import { useDialog } from "@nand2tetris/components/dialog";
 import { BaseContext } from "@nand2tetris/components/stores/base.context";
+import { COMPILER_LAYOUT } from "../../../presentation/build/layouts.js";
 import {
   FileSystemAccessFileSystemAdapter,
   openNand2TetrisDirectory,
@@ -10,11 +11,11 @@ import {
 import { VmFile } from "@nand2tetris/simulator/test/vmtst";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { SchemaLayout } from "../presentation/SchemaLayout";
 import { Editor } from "../shell/editor";
 import { Tab, TabList } from "../shell/tabs";
 import { AppContext } from "../App.context";
 import { PageContext } from "../Page.context";
-import { Panel } from "../shell/panel";
 import URLs from "../urls";
 import "./compiler.scss";
 
@@ -170,97 +171,108 @@ export const Compiler = () => {
     setEditable(true);
   }, [state.fs]);
 
-  return (
-    <div className="Page CompilerPage grid">
+  const dialogSlot = (
+    <>
       <input
         type="file"
         ref={loadRef}
         webkitdirectory=""
         onChange={onLoad}
         style={{ display: "none" }}
-      ></input>
+      />
       <Link
         ref={redirectRef}
         to={URLs["vm"].href}
         style={{ display: "none" }}
       />
       {newFileDialogComponent}
-      <Panel
-        className="code"
-        header={
-          <>
-            <div>
-              <Trans>Source</Trans>
-            </div>
-            <div className="flex row flex-1">
-              <button
-                data-tooltip={t`Open a folder containing Jack file(s)`}
-                data-placement="right"
-                className="flex-0"
-                onClick={uploadFiles}
-              >
-                📂
-              </button>
-              <Padding />
-              <button
-                data-tooltip={t`Create a new file in the currently opened folder`}
-                data-placement="right"
-                className="flex-0"
-                onClick={createFile}
-              >
-                +
-              </button>
-              <Padding />
-              <button
-                className="flex-0"
-                data-tooltip={`Compile all the opened Jack files`}
-                data-placement="bottom"
-                onClick={compileFiles}
-                disabled={!state.isValid}
-              >
-                Compile
-              </button>
-              <Padding />
-              <button
-                className="flex-0"
-                disabled={!state.isCompiled}
-                data-tooltip={t`Load the compiled code into the VM emulator`}
-                data-placement="bottom"
-                onClick={runInVm}
-              >
-                Run
-              </button>
-            </div>
-          </>
-        }
-      >
-        <TabList tabIndex={{ value: selected, set: setSelected }}>
-          {Object.keys(state.files).map((file) => (
-            <Tab
-              title={`${file}.jack`}
-              key={file}
-              onSelect={() => onSelect(file)}
-              style={{
-                backgroundColor: !state.compiled[file].valid
-                  ? "var(--compiler-err-color)"
-                  : undefined,
-              }}
-            >
-              <Editor
-                value={state.files[file]}
-                path={file}
-                onChange={(source: string) => {
-                  actions.writeFile(file, source);
-                }}
-                error={state.compiled[file].error}
-                language={"jack"}
-                disabled={!editable}
-              />
-            </Tab>
-          ))}
-        </TabList>
-      </Panel>
-    </div>
+    </>
+  );
+
+  const codeHeader = (
+    <>
+      <div>
+        <Trans>Source</Trans>
+      </div>
+      <div className="flex row flex-1">
+        <button
+          data-tooltip={t`Open a folder containing Jack file(s)`}
+          data-placement="right"
+          className="flex-0"
+          onClick={uploadFiles}
+        >
+          📂
+        </button>
+        <Padding />
+        <button
+          data-tooltip={t`Create a new file in the currently opened folder`}
+          data-placement="right"
+          className="flex-0"
+          onClick={createFile}
+        >
+          +
+        </button>
+        <Padding />
+        <button
+          className="flex-0"
+          data-tooltip="Compile all the opened Jack files"
+          data-placement="bottom"
+          onClick={compileFiles}
+          disabled={!state.isValid}
+        >
+          Compile
+        </button>
+        <Padding />
+        <button
+          className="flex-0"
+          disabled={!state.isCompiled}
+          data-tooltip={t`Load the compiled code into the VM emulator`}
+          data-placement="bottom"
+          onClick={runInVm}
+        >
+          Run
+        </button>
+      </div>
+    </>
+  );
+
+  const codeBody = (
+    <TabList tabIndex={{ value: selected, set: setSelected }}>
+      {Object.keys(state.files).map((file) => (
+        <Tab
+          title={`${file}.jack`}
+          key={file}
+          onSelect={() => onSelect(file)}
+          style={{
+            backgroundColor: !state.compiled[file].valid
+              ? "var(--compiler-err-color)"
+              : undefined,
+          }}
+        >
+          <Editor
+            value={state.files[file]}
+            path={file}
+            onChange={(source: string) => {
+              actions.writeFile(file, source);
+            }}
+            error={state.compiled[file].error}
+            language={"jack"}
+            disabled={!editable}
+          />
+        </Tab>
+      ))}
+    </TabList>
+  );
+
+  return (
+    <SchemaLayout
+      schema={COMPILER_LAYOUT}
+      slots={{
+        "compiler.dialog": dialogSlot,
+        "compiler.code.header": codeHeader,
+        "compiler.code.body": codeBody,
+      }}
+    />
   );
 };
 

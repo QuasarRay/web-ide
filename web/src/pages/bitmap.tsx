@@ -1,5 +1,6 @@
+import { BITMAP_LAYOUT } from "../../../presentation/build/layouts.js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Panel } from "../shell/panel";
+import { SchemaLayout } from "../presentation/SchemaLayout";
 import {
   createGrid,
   generateHackAssemblyCode,
@@ -628,264 +629,288 @@ export const BitmapEditor = () => {
     };
   }, []);
 
-  return (
-    <div className="Page BitmapPage grid" onMouseUp={stopDraw} onMouseLeave={stopDraw}>
-      {/* Canvas Panel */}
-      <Panel
-        className="canvas-panel"
-        header={
-          <div className="canvas-size-controls">
-            <label htmlFor="inputWidth">Canvas Size:</label>
-            <input
-              ref={widthInputRef}
-              id="inputWidth"
-              type="text"
-              placeholder="width"
-              maxLength={3}
-              defaultValue={width}
-            />
-            <span>x</span>
-            <input
-              ref={heightInputRef}
-              id="inputHeight"
-              type="text"
-              placeholder="height"
-              maxLength={3}
-              defaultValue={height}
-            />
-            <label htmlFor="pixelSize">Pixel size:</label>
-            <input
-              ref={pixelSizeInputRef}
-              id="pixelSize"
-              type="text"
-              placeholder="px"
-              maxLength={2}
-              defaultValue={pixelSize}
-            />
-            <button onClick={handleResize} title="Resize Canvas Preserving Upper-left Contents">
-              Resize
-            </button>
-            <button onClick={handleReset} title="Reset Canvas Size, Settings, and Clear Contents">
-              Reset
-            </button>
-          </div>
-        }
+  const canvasHeader = (
+    <div className="canvas-size-controls">
+      <label htmlFor="inputWidth">Canvas Size:</label>
+      <input
+        ref={widthInputRef}
+        id="inputWidth"
+        type="text"
+        placeholder="width"
+        maxLength={3}
+        defaultValue={width}
+      />
+      <span>x</span>
+      <input
+        ref={heightInputRef}
+        id="inputHeight"
+        type="text"
+        placeholder="height"
+        maxLength={3}
+        defaultValue={height}
+      />
+      <label htmlFor="pixelSize">Pixel size:</label>
+      <input
+        ref={pixelSizeInputRef}
+        id="pixelSize"
+        type="text"
+        placeholder="px"
+        maxLength={2}
+        defaultValue={pixelSize}
+      />
+      <button
+        onClick={handleResize}
+        title="Resize Canvas Preserving Upper-left Contents"
       >
-        <div style={{ overflow: "auto", padding: "var(--spacing)" }}>
-          <table
-            className={`canvas-grid ${obviousStyling ? "obvious-edges" : ""}`}
-            onMouseLeave={stopDraw}
-          >
-            <tbody>
-              {/* Column labels row */}
-              <tr>
-                <td></td>
-                {Array.from({ length: width }, (_, j) => (
-                  <td key={`col-${j}`} className="col-label" style={{ fontSize: `${pixelSize * 0.6}px` }}>
-                    {j + 1}
-                  </td>
-                ))}
-              </tr>
-              {/* Grid rows */}
-              {Array.from({ length: height }, (_, i) => (
-                <tr key={`row-${i}`}>
-                  <td className="row-label" style={{ fontSize: `${pixelSize * 0.6}px` }}>
-                    {i + 1}
-                  </td>
-                  {Array.from({ length: width }, (_, j) => (
-                    <td
-                      key={`cell-${i}-${j}`}
-                      className={`cell ${grid[i]?.[j] ? "filled" : "empty"} ${wordEdgeColumns.has(j) ? "word-edge" : ""
-                        }`}
-                      style={{ width: pixelSize, height: pixelSize }}
-                      onMouseDown={() => startDraw(i, j)}
-                      onMouseOver={() => moveDraw(i, j)}
-                    />
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Panel>
-
-      {/* Code Panel */}
-      <Panel
-        className="code-panel"
-        header={
-          <div className="tab-container">
-            <button
-              className={`tab-button ${codeMode === "jack" ? "active" : ""}`}
-              onClick={() => setCodeMode("jack")}
-            >
-              Generated Jack Code
-            </button>
-            <button
-              className={`tab-button ${codeMode === "hack" ? "active" : ""}`}
-              onClick={() => setCodeMode("hack")}
-            >
-              Generated Hack Assembly
-            </button>
-          </div>
-        }
+        Resize
+      </button>
+      <button
+        onClick={handleReset}
+        title="Reset Canvas Size, Settings, and Clear Contents"
       >
-        <textarea
-          className="generated-code"
-          readOnly
-          value={generatedCode}
-        />
-      </Panel>
-
-      {/* Controls Panel */}
-      <Panel className="controls-panel">
-        {/* Row 1: Manipulation buttons */}
-        <div className="control-row">
-          <input
-            ref={fileInputRef}
-            type="file"
-            className="hidden-file-input"
-            accept=".bmp, .png, image/bmp, image/png"
-            onChange={handleFileSelect}
-          />
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            title="Import BMP (24-bit) or PNG (black and white) file"
-          >
-            Import Image
-          </button>
-
-          <div className="button-group">
-            <button onClick={shiftLeft}>Shift left &lt;</button>
-            <button onClick={shiftRight}>Shift right &gt;</button>
-            <button onClick={shiftUp}>Shift up ^</button>
-            <button onClick={shiftDown}>Shift down v</button>
-            <button onClick={clearShifting}>Clear Shifting</button>
-          </div>
-
-          <div className="spacer" />
-
-          <div className="button-group">
-            <button onClick={rotateBitmapRight} disabled={width !== height}>
-              Rotate right
-            </button>
-            <button onClick={mirrorBitmap}>Flip horizontally</button>
-            <button onClick={invertBitmap}>Invert</button>
-          </div>
-
-          <div className="checkbox-group">
-            <label>
-              <input
-                type="checkbox"
-                checked={invertMode}
-                onChange={(e) => setInvertMode(e.target.checked)}
-              />
-              Inverted Mode
-            </label>
-          </div>
-
-          <div className="spacer" />
-
-          <div className="checkbox-group">
-            <label>
-              <input
-                type="checkbox"
-                checked={pauseCode}
-                onChange={(e) => setPauseCode(e.target.checked)}
-              />
-              Pause Code Generation
-            </label>
-            <label>
-              <input
-                type="checkbox"
-                checked={comments}
-                onChange={(e) => setComments(e.target.checked)}
-              />
-              Comments On
-            </label>
-            <label>
-              <input
-                type="checkbox"
-                checked={obviousStyling}
-                onChange={(e) => setObviousStyling(e.target.checked)}
-              />
-              Obvious Word Edges
-            </label>
-          </div>
-        </div>
-
-        {/* Row 2: Margin type controls */}
-        <div className="control-row">
-          <div className="radio-group">
-            <label>
-              <input
-                type="radio"
-                name="marginType"
-                checked={marginType === "fitToDrawing"}
-                onChange={() => setMarginType("fitToDrawing")}
-              />
-              Fit to drawing
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="marginType"
-                checked={marginType === "rectangular"}
-                onChange={() => setMarginType("rectangular")}
-              />
-              Rectangular
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="marginType"
-                checked={marginType === "fullCanvas"}
-                onChange={() => setMarginType("fullCanvas")}
-              />
-              Full Canvas
-            </label>
-          </div>
-
-          {marginType === "fitToDrawing" && (
-            <div className="input-group">
-              <label htmlFor="marginSaveFrames"># horizontal shifts per animation frame:</label>
-              <input
-                ref={marginFramesInputRef}
-                id="marginSaveFrames"
-                type="text"
-                maxLength={2}
-                defaultValue={marginSaveFrames}
-                onChange={handleMarginFramesChange}
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Row 3: Base address controls */}
-        <div className="control-row">
-          <span>Base address:</span>
-          <div className="radio-group">
-            <label>
-              <input
-                type="radio"
-                name="baseRowFrom"
-                checked={baseTopLeft}
-                onChange={() => setBaseTopLeft(true)}
-              />
-              Top Left
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="baseRowFrom"
-                checked={!baseTopLeft}
-                onChange={() => setBaseTopLeft(false)}
-              />
-              Bottom Left
-            </label>
-          </div>
-        </div>
-      </Panel>
+        Reset
+      </button>
     </div>
+  );
+
+  const canvasBody = (
+    <div style={{ overflow: "auto", padding: "var(--spacing)" }}>
+      <table
+        className={
+          "canvas-grid " + (obviousStyling ? "obvious-edges" : "")
+        }
+        onMouseLeave={stopDraw}
+      >
+        <tbody>
+          <tr>
+            <td />
+            {Array.from({ length: width }, (_, j) => (
+              <td
+                key={"col-" + j}
+                className="col-label"
+                style={{ fontSize: pixelSize * 0.6 + "px" }}
+              >
+                {j + 1}
+              </td>
+            ))}
+          </tr>
+          {Array.from({ length: height }, (_, i) => (
+            <tr key={"row-" + i}>
+              <td
+                className="row-label"
+                style={{ fontSize: pixelSize * 0.6 + "px" }}
+              >
+                {i + 1}
+              </td>
+              {Array.from({ length: width }, (_, j) => (
+                <td
+                  key={"cell-" + i + "-" + j}
+                  className={
+                    "cell " +
+                    (grid[i]?.[j] ? "filled" : "empty") +
+                    " " +
+                    (wordEdgeColumns.has(j) ? "word-edge" : "")
+                  }
+                  style={{ width: pixelSize, height: pixelSize }}
+                  onMouseDown={() => startDraw(i, j)}
+                  onMouseOver={() => moveDraw(i, j)}
+                />
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+
+  const codeHeader = (
+    <div className="tab-container">
+      <button
+        className={"tab-button " + (codeMode === "jack" ? "active" : "")}
+        onClick={() => setCodeMode("jack")}
+      >
+        Generated Jack Code
+      </button>
+      <button
+        className={"tab-button " + (codeMode === "hack" ? "active" : "")}
+        onClick={() => setCodeMode("hack")}
+      >
+        Generated Hack Assembly
+      </button>
+    </div>
+  );
+
+  const codeBody = (
+    <textarea className="generated-code" readOnly value={generatedCode} />
+  );
+
+  const controlsBody = (
+    <>
+      <div className="control-row">
+        <input
+          ref={fileInputRef}
+          type="file"
+          className="hidden-file-input"
+          accept=".bmp, .png, image/bmp, image/png"
+          onChange={handleFileSelect}
+        />
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          title="Import BMP (24-bit) or PNG (black and white) file"
+        >
+          Import Image
+        </button>
+
+        <div className="button-group">
+          <button onClick={shiftLeft}>Shift left &lt;</button>
+          <button onClick={shiftRight}>Shift right &gt;</button>
+          <button onClick={shiftUp}>Shift up ^</button>
+          <button onClick={shiftDown}>Shift down v</button>
+          <button onClick={clearShifting}>Clear Shifting</button>
+        </div>
+
+        <div className="spacer" />
+
+        <div className="button-group">
+          <button onClick={rotateBitmapRight} disabled={width !== height}>
+            Rotate right
+          </button>
+          <button onClick={mirrorBitmap}>Flip horizontally</button>
+          <button onClick={invertBitmap}>Invert</button>
+        </div>
+
+        <div className="checkbox-group">
+          <label>
+            <input
+              type="checkbox"
+              checked={invertMode}
+              onChange={(e) => setInvertMode(e.target.checked)}
+            />
+            Inverted Mode
+          </label>
+        </div>
+
+        <div className="spacer" />
+
+        <div className="checkbox-group">
+          <label>
+            <input
+              type="checkbox"
+              checked={pauseCode}
+              onChange={(e) => setPauseCode(e.target.checked)}
+            />
+            Pause Code Generation
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={comments}
+              onChange={(e) => setComments(e.target.checked)}
+            />
+            Comments On
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={obviousStyling}
+              onChange={(e) => setObviousStyling(e.target.checked)}
+            />
+            Obvious Word Edges
+          </label>
+        </div>
+      </div>
+
+      <div className="control-row">
+        <div className="radio-group">
+          <label>
+            <input
+              type="radio"
+              name="marginType"
+              checked={marginType === "fitToDrawing"}
+              onChange={() => setMarginType("fitToDrawing")}
+            />
+            Fit to drawing
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="marginType"
+              checked={marginType === "rectangular"}
+              onChange={() => setMarginType("rectangular")}
+            />
+            Rectangular
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="marginType"
+              checked={marginType === "fullCanvas"}
+              onChange={() => setMarginType("fullCanvas")}
+            />
+            Full Canvas
+          </label>
+        </div>
+
+        {marginType === "fitToDrawing" && (
+          <div className="input-group">
+            <label htmlFor="marginSaveFrames">
+              # horizontal shifts per animation frame:
+            </label>
+            <input
+              ref={marginFramesInputRef}
+              id="marginSaveFrames"
+              type="text"
+              maxLength={2}
+              defaultValue={marginSaveFrames}
+              onChange={handleMarginFramesChange}
+            />
+          </div>
+        )}
+      </div>
+
+      <div className="control-row">
+        <span>Base address:</span>
+        <div className="radio-group">
+          <label>
+            <input
+              type="radio"
+              name="baseRowFrom"
+              checked={baseTopLeft}
+              onChange={() => setBaseTopLeft(true)}
+            />
+            Top Left
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="baseRowFrom"
+              checked={!baseTopLeft}
+              onChange={() => setBaseTopLeft(false)}
+            />
+            Bottom Left
+          </label>
+        </div>
+      </div>
+    </>
+  );
+
+  return (
+    <SchemaLayout
+      schema={BITMAP_LAYOUT}
+      containerProps={{
+        "bitmap.root": {
+          onMouseUp: stopDraw,
+          onMouseLeave: stopDraw,
+        },
+      }}
+      slots={{
+        "bitmap.canvas.header": canvasHeader,
+        "bitmap.canvas.body": canvasBody,
+        "bitmap.code.header": codeHeader,
+        "bitmap.code.body": codeBody,
+        "bitmap.controls.body": controlsBody,
+      }}
+    />
   );
 };
 
