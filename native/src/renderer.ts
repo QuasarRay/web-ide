@@ -1,38 +1,52 @@
 import {
   Divider,
   ScrollView,
-  Text,
-  VStack,
   scrollviewSetChild,
   setCornerRadius,
   setPadding,
+  Text,
   textSetFontSize,
+  type Widget,
+  VStack,
   widgetSetBackgroundColor,
 } from "perry/ui";
 
 import { renderLayout } from "../../presentation/build/schema.js";
+import type {
+  ContainerNode,
+  GroupNode,
+  LayoutRenderer,
+  PageLayout,
+  PanelNode,
+  SlotNode,
+  StyleToken,
+} from "../../presentation/src/schema.ts";
 
-function stack(children: any[], spacing = 8): any {
-  const filtered: any[] = [];
+function stack(children: readonly Widget[], spacing = 8): Widget {
+  const filtered: Widget[] = [];
   for (const child of children) {
     if (child !== undefined && child !== null) filtered.push(child);
   }
   return VStack(spacing, filtered);
 }
 
-function stylePanel(widget: any): any {
+function stylePanel(widget: Widget): Widget {
   setPadding(widget, 10);
   setCornerRadius(widget, 10);
   widgetSetBackgroundColor(widget, 0.12, 0.12, 0.14, 0.92);
   return widget;
 }
 
-const renderer = {
-  group(_node: any, children: any[]): any {
+const renderer: LayoutRenderer<Widget, Widget> = {
+  group(_node: GroupNode, children: readonly Widget[]): Widget {
     return stack(children, 0);
   },
 
-  container(_node: any, children: any[], tokens: string[]): any {
+  container(
+    _node: ContainerNode,
+    children: readonly Widget[],
+    tokens: readonly StyleToken[],
+  ): Widget {
     let spacing = 8;
     for (const token of tokens) {
       if (token === "grid") spacing = 10;
@@ -41,13 +55,13 @@ const renderer = {
   },
 
   panel(
-    _node: any,
-    header: any | undefined,
-    body: any[],
-    footer: any | undefined,
-    _tokens: string[],
-  ): any {
-    const children: any[] = [];
+    _node: PanelNode,
+    header: Widget | undefined,
+    body: readonly Widget[],
+    footer: Widget | undefined,
+    _tokens: readonly StyleToken[],
+  ): Widget {
+    const children: Widget[] = [];
     if (header !== undefined) {
       children.push(header);
       children.push(Divider());
@@ -60,7 +74,7 @@ const renderer = {
     return stylePanel(stack(children, 6));
   },
 
-  slot(node: any, value: any | undefined): any {
+  slot(node: SlotNode, value: Widget | undefined): Widget {
     if (value !== undefined) return value;
     if (node.optional) return VStack([]);
     const warning = Text("Unavailable native slot: " + node.slot);
@@ -70,10 +84,10 @@ const renderer = {
 };
 
 export function renderNativeTree(
-  schema: any,
-  slots: Record<string, any | undefined>,
-  dynamicTokens: Record<string, string[] | undefined> = {},
-): any {
+  schema: PageLayout,
+  slots: Readonly<Record<string, Widget | undefined>>,
+  dynamicTokens: Readonly<Record<string, readonly StyleToken[] | undefined>> = {},
+): Widget {
   return renderLayout(schema.root, renderer, {
     slots,
     dynamicTokens,
@@ -81,10 +95,10 @@ export function renderNativeTree(
 }
 
 export function renderNativeLayout(
-  schema: any,
-  slots: Record<string, any | undefined>,
-  dynamicTokens: Record<string, string[] | undefined> = {},
-): any {
+  schema: PageLayout,
+  slots: Readonly<Record<string, Widget | undefined>>,
+  dynamicTokens: Readonly<Record<string, readonly StyleToken[] | undefined>> = {},
+): Widget {
   const scroll = ScrollView();
   scrollviewSetChild(scroll, renderNativeTree(schema, slots, dynamicTokens));
   return scroll;
