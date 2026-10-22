@@ -12,12 +12,7 @@ import {
 } from "perry/ui";
 
 import { alu } from "../../simulator/src/cpu/alu.ts";
-import {
-  bin,
-  dec,
-  hex,
-  nand16,
-} from "../../simulator/src/util/twos.ts";
+import { bin, dec, hex, nand16 } from "../../simulator/src/util/twos.ts";
 import { assembleProgram, formatHack } from "./assembler.ts";
 import { stepCPU } from "./cpu_kernel.ts";
 
@@ -62,10 +57,7 @@ let aluY = "0";
 
 function hardwarePage() {
   return VStack(10, [
-    HStack([
-      Button("‹ Back", () => route.set("home")),
-      Text("Hardware / ALU"),
-    ]),
+    HStack([Button("‹ Back", () => route.set("home")), Text("Hardware / ALU")]),
     Text("NAND16"),
     TextField("A (dec / 0xhex / 0bbin)", (value) => {
       nandA = value;
@@ -75,10 +67,7 @@ function hardwarePage() {
     }),
     Button("Evaluate NAND16", () => {
       const out = nand16(parseWord(nandA), parseWord(nandB));
-      setText(
-        "nandResult",
-        `NAND = ${dec(out)}  ${hex(out)}  ${bin(out)}`,
-      );
+      setText("nandResult", `NAND = ${dec(out)}  ${hex(out)}  ${bin(out)}`);
     }),
     Text("NAND = 65535  0xFFFF  1111111111111111", "nandResult"),
     Text("Hack ALU"),
@@ -97,10 +86,7 @@ function hardwarePage() {
         parseWord(aluX),
         parseWord(aluY),
       );
-      setText(
-        "aluResult",
-        `out=${dec(out)} (${hex(out)}) flags=${flags}`,
-      );
+      setText("aluResult", `out=${dec(out)} (${hex(out)}) flags=${flags}`);
     }),
     Text("out=0 (0x0000) flags=0", "aluResult"),
   ]);
