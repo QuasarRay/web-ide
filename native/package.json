@@ -4,10 +4,13 @@
   "type": "module",
   "scripts": {
     "check:presentation": "../node_modules/.bin/tsc --build ../presentation",
-    "check": "npm run check:presentation && perry check src/main.ts",
-    "build:android": "mkdir -p dist && npm run check:presentation && perry compile src/main.ts --target android --fast-math -o dist/Nand2TetrisNative"
+    "check": "npm run check:presentation && perry check src/main.ts --strict",
+    "build:android": "mkdir -p dist && npm run check:presentation && perry compile src/main.ts --target android --fast-math --app-bundle-id org.nand2tetris.native -o dist/nand2tetris-native.apk"
   },
   "devDependencies": {
-    "@perryts/perry": "0.5.1520"
+    "@perryts/perry": "0.5.1663"
+  },
+  "perry": {
+    "fastMath": true
   }
 }
