@@ -3,10 +3,11 @@ import {
   HStack,
   Text,
   TextArea,
-  TextField,
-  VStack,
   setText,
+  TextField,
   textSetFontSize,
+  type Widget,
+  VStack,
 } from "perry/ui";
 
 import {
