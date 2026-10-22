@@ -11,12 +11,9 @@ export const APP_ROUTER_LAYOUT: PageLayout = {
   id: "app-router",
   root: group("app.router", [
     slot("app.header"),
-    container(
-      "app.main",
-      [slot("app.content")],
-      ["flex", "flex-1"],
-      { landmark: "main" },
-    ),
+    container("app.main", [slot("app.content")], ["flex", "flex-1"], {
+      landmark: "main",
+    }),
     slot("app.footer"),
     slot("app.tracking", { optional: true }),
   ]),
