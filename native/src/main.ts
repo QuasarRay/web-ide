@@ -3,10 +3,11 @@ import {
   Button,
   HStack,
   NavStack,
-  Text,
-  VStack,
   state,
+  Text,
   textSetFontSize,
+  type Widget,
+  VStack,
 } from "perry/ui";
 
 import {
@@ -28,11 +29,11 @@ import { renderNativeTree } from "./renderer.ts";
 
 const route = state("chip");
 
-function navButton(label: string, target: string): any {
+function navButton(label: string, target: string): Widget {
   return Button(label, () => route.set(target));
 }
 
-function header(): any {
+function header(): Widget {
   const heading = Text("nand2tetris — Perry Native AOT");
   textSetFontSize(heading, 20);
 
