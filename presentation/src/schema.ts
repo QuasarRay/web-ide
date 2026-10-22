@@ -7,6 +7,11 @@ export interface LayoutBase {
   tokens?: readonly StyleToken[];
 }
 
+export interface GroupNode extends LayoutBase {
+  kind: "group";
+  children: readonly LayoutNode[];
+}
+
 export interface ContainerNode extends LayoutBase {
   kind: "container";
   children: readonly LayoutNode[];
@@ -27,7 +32,7 @@ export interface SlotNode extends LayoutBase {
   optional?: boolean;
 }
 
-export type LayoutNode = ContainerNode | PanelNode | SlotNode;
+export type LayoutNode = GroupNode | ContainerNode | PanelNode | SlotNode;
 
 export interface PageLayout {
   id: string;
@@ -40,6 +45,7 @@ export interface RenderContext<Slot> {
 }
 
 export interface LayoutRenderer<Output, Slot> {
+  group(node: GroupNode, children: readonly Output[]): Output;
   container(
     node: ContainerNode,
     children: readonly Output[],
@@ -64,6 +70,15 @@ export const slot = (
   slot: id,
   optional: options.optional,
   tokens: options.tokens,
+});
+
+export const group = (
+  id: NodeId,
+  children: readonly LayoutNode[],
+): GroupNode => ({
+  kind: "group",
+  id,
+  children,
 });
 
 export const container = (
@@ -113,6 +128,12 @@ export function renderLayout<Output, Slot>(
   switch (node.kind) {
     case "slot":
       return renderer.slot(node, context.slots[node.slot]);
+    case "group": {
+      const children = node.children.map((child) =>
+        renderLayout(child, renderer, context),
+      );
+      return renderer.group(node, children);
+    }
     case "container": {
       const children = node.children.map((child) =>
         renderLayout(child, renderer, context),
