@@ -86,7 +86,9 @@ const renderer: LayoutRenderer<Widget, Widget> = {
 export function renderNativeTree(
   schema: PageLayout,
   slots: Readonly<Record<string, Widget | undefined>>,
-  dynamicTokens: Readonly<Record<string, readonly StyleToken[] | undefined>> = {},
+  dynamicTokens: Readonly<
+    Record<string, readonly StyleToken[] | undefined>
+  > = {},
 ): Widget {
   return renderLayout(schema.root, renderer, {
     slots,
