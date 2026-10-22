@@ -344,6 +344,7 @@ export const Asm = () => {
         "asm.compare.editor": compareEditor,
       }}
     />
-  );};
+  );
+};
 
 export default Asm;
