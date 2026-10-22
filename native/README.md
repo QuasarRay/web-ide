@@ -20,63 +20,62 @@ simulator kernels + native AOT-safe adapters
              Android Views
 ```
 
-The APK does not use:
+The APK does not use WebView/Chromium as its application shell, Node.js at
+runtime, V8/Perry's `--enable-js-runtime`, React DOM, Monaco, or JavaScript
+JIT execution.
 
-- WebView or Chromium as the application shell;
-- Node.js at runtime;
-- V8 / Perry `--enable-js-runtime`;
-- React DOM;
-- Monaco;
-- JavaScript JIT evaluation.
+## Optimization
 
-Perry compiles the TypeScript ahead of time and links its native runtime and
-Android UI implementation into the application.
+The CI build pins Perry 0.5.1663 and enables:
+
+- LLVM native AOT code generation;
+- `--fast-math` / `PERRY_FAST_MATH=1`;
+- `PERRY_LL_SIZE_OPT=0`, restoring LLVM `-O3` instead of Perry's newer
+  size-optimized native default;
+- ARM64 Android output with a generic CPU baseline for broad device
+  compatibility.
 
 ## Shared schema coverage
 
-The Perry renderer consumes the same:
-
-- application shell layout;
-- Chip layout;
-- CPU layout;
-- Assembler layout;
-- VM layout;
-- Jack Compiler layout;
-- Bitmap layout;
-- Converter layout;
-- About layout;
-- route metadata
-
-used by the browser renderer.
+The Perry renderer consumes the same application shell, Chip, CPU, Assembler,
+VM, Jack Compiler, Bitmap, Converter, About, and route metadata used by the
+browser renderer.
 
 ## Functional native subset
 
-Already functional in the strict-AOT APK:
+Already implemented without a JS-runtime fallback:
 
-- 16-bit NAND evaluator using the repository's simulator kernel;
-- Hack ALU evaluator using the repository's simulator kernel;
+- 16-bit NAND evaluator using the repository simulator kernel;
+- Hack ALU evaluator using the repository simulator kernel;
 - CPU single-step execution with differential tests against `cpu()`;
 - Hack assembler with labels, variables, and predefined symbols;
-- two's-complement decimal/hex/binary converter.
+- two's-complement decimal/hex/binary converter;
+- native text-entry surfaces for HDL, VM, and Jack source.
 
-Native editor surfaces are present for HDL, VM, and Jack source. Their
-browser implementation currently depends on paths such as Ohm, RxJS, and
-Monaco that are not yet suitable for the strict AOT target. Those regions are
-kept as native placeholders until equivalent AOT-safe parsers/controllers are
-ported. No WebView fallback is used.
+The HDL/VM/Jack execution paths still depend on browser-oriented parser/state
+infrastructure in the existing app. Their shared layout is rendered natively,
+but execution remains explicitly staged rather than silently using WebView/V8.
 
-## Build
+## Local build
 
-Prerequisites are Node 22+, Perry 0.5.1520, Android SDK, and NDK.
+Requirements: Node 22+, Perry 0.5.1663, Android SDK, and Android NDK.
 
 ```sh
 npm ci
-./node_modules/.bin/tsc --build presentation
+npx tsc --build presentation
+npm install --global @perryts/perry@0.5.1663
+
+export PERRY_FAST_MATH=1
+export PERRY_LL_SIZE_OPT=0
+
 cd native
-perry check src/main.ts
-perry compile src/main.ts --target android --fast-math -o dist/Nand2TetrisNative
+perry check src/main.ts --strict
+perry compile src/main.ts \
+  --target android \
+  --fast-math \
+  --app-bundle-id org.nand2tetris.native \
+  -o dist/nand2tetris-native.apk
 ```
 
-The GitHub Actions workflow builds the Android ARM64 runtime/UI archives,
-compiles the native target, verifies an APK exists, and publishes it as an
-artifact.
+GitHub Actions additionally verifies the APK archive, Android package metadata,
+and APK signature before uploading it as `nand2tetris-perry-aot-arm64`.
