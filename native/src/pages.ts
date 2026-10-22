@@ -1,13 +1,13 @@
 import {
   Button,
   HStack,
+  setText,
   Text,
   TextArea,
-  setText,
   TextField,
   textSetFontSize,
-  type Widget,
   VStack,
+  type Widget,
 } from "perry/ui";
 
 import {
@@ -43,7 +43,7 @@ function parseWord(source: string): number {
   return parsed & 0xffff;
 }
 
-function title(value: string): any {
+function title(value: string): Widget {
   const widget = Text(value);
   textSetFontSize(widget, 18);
   return widget;
@@ -56,7 +56,7 @@ let aluX = "0";
 let aluY = "0";
 let hdlSource = "";
 
-function hardwareEvaluator(): any {
+function hardwareEvaluator(): Widget {
   return VStack(8, [
     Text("NAND16"),
     TextField("A (dec / 0xhex / 0bbin)", (value) => {
@@ -103,7 +103,7 @@ function hardwareEvaluator(): any {
   ]);
 }
 
-export function chipPage(): any {
+export function chipPage(): Widget {
   return renderNativeLayout(CHIP_LAYOUT, {
     "chip.hdl.header": title("HDL"),
     "chip.hdl.body": VStack(6, [
@@ -132,7 +132,7 @@ let cpuPC = "0";
 let cpuInM = "0";
 let cpuInstruction = "0";
 
-function cpuControls(): any {
+function cpuControls(): Widget {
   return VStack(7, [
     TextField("A register", (value) => {
       cpuA = value;
@@ -183,7 +183,7 @@ function cpuControls(): any {
   ]);
 }
 
-export function cpuPage(): any {
+export function cpuPage(): Widget {
   return renderNativeLayout(CPU_LAYOUT, {
     "cpu.rom": VStack(4, [
       title("ROM / instruction"),
@@ -200,7 +200,7 @@ export function cpuPage(): any {
 
 let assemblySource = "";
 
-export function assemblerPage(): any {
+export function assemblerPage(): Widget {
   const sourceHeader = HStack(8, [
     title("Source"),
     Button("Assemble", () => {
@@ -239,7 +239,7 @@ export function assemblerPage(): any {
 
 let vmSource = "";
 
-export function vmPage(): any {
+export function vmPage(): Widget {
   return renderNativeLayout(VM_LAYOUT, {
     "vm.program.header": title("VM Code"),
     "vm.program.editor": VStack(5, [
@@ -263,7 +263,7 @@ export function vmPage(): any {
 
 let jackSource = "";
 
-export function compilerPage(): any {
+export function compilerPage(): Widget {
   return renderNativeLayout(COMPILER_LAYOUT, {
     "compiler.code.header": title("Jack Compiler"),
     "compiler.code.body": VStack(6, [
@@ -281,7 +281,7 @@ export function compilerPage(): any {
   });
 }
 
-export function bitmapPage(): any {
+export function bitmapPage(): Widget {
   return renderNativeLayout(BITMAP_LAYOUT, {
     "bitmap.canvas.header": title("Bitmap Canvas"),
     "bitmap.canvas.body": Text(
@@ -299,7 +299,7 @@ export function bitmapPage(): any {
 
 let utilValue = "0";
 
-export function utilPage(): any {
+export function utilPage(): Widget {
   return renderNativeLayout(UTIL_LAYOUT, {
     "util.body": VStack(8, [
       title("Converter Tool"),
@@ -318,7 +318,7 @@ export function utilPage(): any {
   });
 }
 
-export function aboutPage(): any {
+export function aboutPage(): Widget {
   return renderNativeLayout(ABOUT_LAYOUT, {
     "about.body": VStack(6, [
       title("nand2tetris Native"),
