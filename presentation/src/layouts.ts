@@ -183,6 +183,12 @@ export const TOOL_LAYOUTS = {
   about: ABOUT_LAYOUT,
 } as const;
 
-for (const layout of Object.values(TOOL_LAYOUTS)) {
+export const ALL_LAYOUTS = {
+  app: APP_LAYOUT,
+  appRouter: APP_ROUTER_LAYOUT,
+  ...TOOL_LAYOUTS,
+} as const;
+
+for (const layout of Object.values(ALL_LAYOUTS)) {
   validateLayout(layout);
 }
