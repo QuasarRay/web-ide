@@ -39,7 +39,7 @@
     "start": "npm run web",
     "preinstall-cli": "npm run build -w projects && npm run build -w runner && npm run build -w simulator && npm run build -w cli",
     "install-cli": "npm i -g cli",
-    "check:presentation": "node presentation/check-boundary.mjs && node_modules/.bin/tsc --build presentation"
+    "check:presentation": "node presentation/check-boundary.mjs && node_modules/.bin/tsc --build presentation && node presentation/check-layouts.mjs"
   },
   "workspaces": [
     "cli",
