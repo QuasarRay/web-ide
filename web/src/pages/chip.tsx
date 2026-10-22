@@ -461,6 +461,7 @@ export const Chip = () => {
         "chip.test": testPanel,
       }}
     />
-  );};
+  );
+};
 
 export default Chip;
