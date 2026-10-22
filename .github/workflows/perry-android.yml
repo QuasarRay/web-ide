@@ -1,0 +1,113 @@
+name: Perry Native Android
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "native/**"
+      - "simulator/**"
+      - ".github/workflows/perry-android.yml"
+      - "package.json"
+      - "package-lock.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  regression:
+    name: Existing simulator regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Existing repository checks
+        run: npm run check
+      - name: Existing simulator tests
+        run: npm test -w simulator -- --run
+      - name: Native differential tests
+        run: npx vitest run native/tests/compat.test.ts
+
+  android:
+    name: Perry AOT APK
+    needs: regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      CI: "true"
+      PERRY_NO_TELEMETRY: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install repository dependencies
+        run: npm ci
+
+      - name: Install Perry
+        run: npm install --global @perryts/perry@latest
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android NDK
+        shell: bash
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0" "ndk;27.2.12479018"
+          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/27.2.12479018" >> "$GITHUB_ENV"
+          echo "$ANDROID_SDK_ROOT/ndk/27.2.12479018/toolchains/llvm/prebuilt/linux-x86_64/bin" >> "$GITHUB_PATH"
+
+      - name: Perry toolchain diagnostics
+        run: perry doctor
+
+      - name: Reject browser/runtime fallbacks
+        run: |
+          if grep -R --line-number -- "--enable-js-runtime" native/src native/package.json; then
+            echo "V8/JS-runtime fallback is forbidden for the native target."
+            exit 1
+          fi
+          if grep -R --line-number -E "WebView|react-dom|monaco-editor" native/src; then
+            echo "Browser runtime dependency found in native source."
+            exit 1
+          fi
+
+      - name: Perry compatibility check
+        run: perry check native/src/main.ts
+
+      - name: Build optimized ARM64 Android APK
+        run: |
+          mkdir -p native/dist
+          perry compile native/src/main.ts \
+            --target android \
+            --fast-math \
+            -o native/dist/Nand2TetrisNative
+          find native/dist -maxdepth 4 -type f -print
+
+      - name: Verify APK exists
+        id: apk
+        shell: bash
+        run: |
+          APK="$(find native/dist -type f -name '*.apk' -print -quit)"
+          if [ -z "$APK" ]; then
+            echo "Perry did not produce an APK."
+            exit 1
+          fi
+          echo "path=$APK" >> "$GITHUB_OUTPUT"
+          ls -lh "$APK"
+
+      - name: Upload native APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: nand2tetris-perry-native-arm64
+          path: ${{ steps.apk.outputs.path }}
+          if-no-files-found: error
+          retention-days: 30
