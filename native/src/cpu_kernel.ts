@@ -26,14 +26,14 @@ interface TickState extends NativeCPUState {
 
 const BITS = {
   c: 0x8000,
-  am: 0x1000,
+  am: 0x9000,
   op: 0x0fc0,
-  d1: 0x20,
-  d2: 0x10,
-  d3: 0x08,
-  j1: 0x01,
-  j2: 0x02,
-  j3: 0x04,
+  d1: 0x8020,
+  d2: 0x8010,
+  d3: 0x8008,
+  j1: 0x8001,
+  j2: 0x8002,
+  j3: 0x8004,
 };
 
 function bit(instruction: number, mask: number): boolean {
