@@ -1,9 +1,42 @@
 import { describe, expect, it } from "vitest";
 
+import {
+  ABOUT_LAYOUT,
+  APP_LAYOUT,
+  ASM_LAYOUT,
+  BITMAP_LAYOUT,
+  CHIP_LAYOUT,
+  COMPILER_LAYOUT,
+  CPU_LAYOUT,
+  UTIL_LAYOUT,
+  VM_LAYOUT,
+} from "../../presentation/src/layouts.ts";
+import { validateLayout } from "../../presentation/src/schema.ts";
+
 import { cpu } from "../../simulator/src/cpu/cpu.ts";
 import { Flags } from "../../simulator/src/cpu/alu.ts";
 import { assembleProgram } from "../src/assembler.ts";
 import { stepCPU } from "../src/cpu_kernel.ts";
+
+describe("native shared-schema coverage", () => {
+  const layouts = [
+    APP_LAYOUT,
+    CHIP_LAYOUT,
+    CPU_LAYOUT,
+    ASM_LAYOUT,
+    VM_LAYOUT,
+    COMPILER_LAYOUT,
+    BITMAP_LAYOUT,
+    UTIL_LAYOUT,
+    ABOUT_LAYOUT,
+  ];
+
+  for (const layout of layouts) {
+    it("validates " + layout.id, () => {
+      expect(validateLayout(layout).nodeIds.length).toBeGreaterThan(0);
+    });
+  }
+});
 
 describe("Perry native assembler", () => {
   it("assembles canonical Hack instructions", () => {
