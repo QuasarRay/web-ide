@@ -55,17 +55,10 @@ function tick(
     D = ALU;
   }
 
-  return [
-    { A, D, PC: PC + 1, ALU, flag },
-    bit(instruction, BITS.d3),
-    ALU,
-  ];
+  return [{ A, D, PC: PC + 1, ALU, flag }, bit(instruction, BITS.d3), ALU];
 }
 
-function tock(
-  input: NativeCPUInput,
-  tickState: TickState,
-): NativeCPUOutput {
+function tock(input: NativeCPUInput, tickState: TickState): NativeCPUOutput {
   let { A, D, PC, ALU, flag } = tickState;
   const instruction = input.instruction & 0xffff;
 
