@@ -17,7 +17,9 @@ import { Icon } from "../pico/icon";
 const GUIDE_NOT_AVAILABLE_MESSAGE = "Guide not available for this tool";
 
 function routeFromPath(pathname: string) {
-  return Object.values(ROUTES).find((route) => route.href === pathname);
+  const normalized =
+    pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
+  return Object.values(ROUTES).find((route) => route.href === normalized);
 }
 
 const Header = () => {
