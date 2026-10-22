@@ -8,7 +8,7 @@
     "build:android": "mkdir -p dist && npm run check:presentation && perry compile src/main.ts --target android --fast-math --app-bundle-id org.nand2tetris.native -o dist/nand2tetris-native.apk"
   },
   "devDependencies": {
-    "@perryts/perry": "0.5.1663"
+    "@perryts/perry": "0.5.1520"
   },
   "perry": {
     "fastMath": true
