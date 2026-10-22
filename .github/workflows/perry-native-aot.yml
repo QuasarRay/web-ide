@@ -105,6 +105,14 @@ jobs:
         run: |
           set -euo pipefail
 
+          # The npm 0.5.1520 compiler was packaged without Git metadata and
+          # therefore expects Perry's source-content fingerprint (src:...).
+          # A clean Git checkout would stamp these archives with git:<sha>
+          # instead. A file-mode-only change marks the contract tree dirty
+          # without changing any hashed bytes, forcing the identical source
+          # fingerprint used by the npm compiler.
+          chmod +x .perry-src/crates/perry-runtime/src/lib.rs
+
           rustup toolchain install nightly-2026-08-20 \
             --profile minimal \
             --target aarch64-linux-android
@@ -165,6 +173,7 @@ jobs:
           ls -lh "$LIB_DIR"/libperry_{runtime,stdlib,ui_android}.a
 
       - name: Perry diagnostics
+        working-directory: native
         run: perry doctor
 
       - name: Enforce strict native target
