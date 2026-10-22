@@ -911,6 +911,7 @@ export const BitmapEditor = () => {
         "bitmap.controls.body": controlsBody,
       }}
     />
-  );};
+  );
+};
 
 export default BitmapEditor;
